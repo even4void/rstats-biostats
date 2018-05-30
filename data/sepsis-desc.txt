@@ -1,0 +1,13 @@
+sepsis.dta
+
+Essai clinique randomisé pour évaluer l’effet de l’administration d’ibuprofène par voie intraveineuse sur la mortalité de patients en état septique sévère, décrite dans Bernard et al. (1997). Ces données sont extensivement analysées et commentées dans l’ouvrage de Dupont (2009).
+
+Fichier au format Stata 10, importable sous R avec le package {foreign} ou {haven}.
+
+22 variables dont 16 variables représentant une mesure de la température entre T0 et T0 + 15 x 2h, deux groupes de patients ("Placebo", n = 231 et "Ibuprofène", n = 224) et une mesure de morbidité (score APACHE).
+
+Références :
+
+Bernard, G. R., Wheeler, A. P., Russell, J. A., Schein, R., Summer, W. R., Steinberg, K. P., ... Swindell, B. B. (1997). The Effects of Ibuprofen on the Physiology and Survival of Patients With Sepsis. The Ibuprofen in Sepsis Study Group. New England Journal of Medicine, 336(13), 912-918.
+
+Dupont, W. D. (2009). Statistical Modeling for Biomedical Researchers (2nd éd.). (S.l.) : Cambridge University Press. URL: http://biostat.mc.vanderbilt.edu/ dupontwd/wddtext/index.html
