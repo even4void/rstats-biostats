@@ -1,3 +1,0 @@
-# Rappels sur le langage R 
-
-Quelques commandes de base...
