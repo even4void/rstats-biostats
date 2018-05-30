@@ -1,0 +1,4 @@
+# Introduction {#intro}
+
+Ce document rassemble des notes utiles pour suivre la formation au logiciel R.
+
