@@ -11,28 +11,35 @@ output:
     df_print: paged
 ---
 
-```{r, echo = FALSE, message = FALSE}
+Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2** et **hrbrthemes** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes"))`) s'ils ne sont pas déjà installés. On supposera de plus que les instructions R sont exécutées dans un environnement de travail avec un répertoire `data/` disponible.
+```{r, message = FALSE}
 library(ggplot2)
 library(hrbrthemes)
 theme_set(theme_ipsum(base_size = 11))
 ```
 
+
+# Rappels sur l'ANOVA à un facteur
+
+## Chargement des données
+
+## Description des variables
+
+## Modélisation
+
+
 # Modèle d'ANOVA à deux facteurs
 
 ## Chargement des données
 On utilise les données sur le gain de poids chez des rats soumis à différents régimes alimentaires. Le chargement des données est réalisé ci-dessous :
-
 ```{r}
-WD <- "../data"
-setwd(WD)
-load("weight.rda")
+load("data/weight.rda")
 str(weight)
 ```
 
 ## Description des variables
 
-Les variables peuvent être décrites par colonnes mais il est préférable de réarranger le tableau sous forme de data frame :
-
+Les variables peuvent être décrites par colonnes mais il est préférable de réarranger le tableau sous forme de data frame, afin d'avoir une seule variable statistique par colonne :
 ```{r}
 d <- data.frame(weight = as.numeric(unlist(weight)),
                 type   = gl(2, 20, labels = c("Beef", "Cereal")),
@@ -40,6 +47,7 @@ d <- data.frame(weight = as.numeric(unlist(weight)),
 d
 ```
 
+Voici un résumé graphique possible des données individuelles avec le package **ggplot2** : 
 ```{r}
 p <- ggplot(data = d, aes(x = level, y = weight)) + 
        geom_boxplot(position = position_dodge()) +
@@ -49,9 +57,30 @@ p <- ggplot(data = d, aes(x = level, y = weight)) +
 p
 ```
 
-## Modélisation {.tabset}
+## Modélisation
+
+Le modèle d'ANOVA à deux facteurs avec interaction s'écrit :
+```{r}
+m <- aov(weight ~ type * level, data = d)
+summary(m)
+```
+
+Le terme d'interaction n'étant pas significatif, il est possible de proposer un modèle plus simple :
+```{r}
+m <- aov(weight ~ type + level, data = d)
+summary(m)
+```
+
+```{r}
+t.test(weight ~ level, data = d, var.equal = TRUE)
+```
+
+## Exercices d'application {.tabset}
 
 ### ANOVA à deux facteurs
 
 
 ### Comparaisons post-hoc
+
+
+### Spécification de contrastes
