@@ -1,6 +1,12 @@
 ---
 title: "Mémento technique & pratique"
-date: 06/2018, $\sharp$ bd42d44
+date: 06/2018
+output: 
+  pdf_document:
+    template: tmpl.latex
+    latex_engine: xelatex
+    citation_package: biblatex
+    highlight: null
 ---
 
 

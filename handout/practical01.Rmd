@@ -1,0 +1,56 @@
+---
+title: "ANOVA et comparaisons multiples"
+output: 
+  html_document:
+    theme: default
+    number_sections: false
+    toc: true
+    toc_float: true
+    code_folding: show
+    df_print: paged
+---
+
+```{r, echo = FALSE, message = FALSE}
+library(ggplot2)
+library(hrbrthemes)
+theme_set(theme_ipsum(base_size = 11))
+```
+
+# Modèle d'ANOVA à deux facteurs
+
+## Chargement des données
+On utilise les données sur le gain de poids chez des rats soumis à différents régimes alimentaires. Le chargement des données est réalisé ci-dessous :
+
+```{r}
+WD <- "../data"
+setwd(WD)
+load("weight.rda")
+str(weight)
+```
+
+## Description des variables
+
+Les variables peuvent être décrites par colonnes mais il est préférable de réarranger le tableau sous forme de data frame :
+
+```{r}
+d <- data.frame(weight = as.numeric(unlist(weight)),
+                type   = gl(2, 20, labels = c("Beef", "Cereal")),
+                level  = gl(2, 10, labels = c("Low", "High")))
+d
+```
+
+```{r}
+p <- ggplot(data = d, aes(x = level, y = weight)) + 
+       geom_boxplot(position = position_dodge()) +
+       geom_jitter(size = .8, width = .05) +
+       facet_wrap(~ type, nrow = 2) +
+       labs(x = NULL, y = "Rat weight (g)")
+p
+```
+
+## Modélisation {.tabset}
+
+### ANOVA à deux facteurs
+
+
+### Comparaisons post-hoc
