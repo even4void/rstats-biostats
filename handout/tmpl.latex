@@ -1,0 +1,145 @@
+%% Simple article template
+%  No section numbering, no title page, plain layout
+%
+\documentclass[11pt,a4paper,oneside,final,article]{memoir}
+\usepackage{polyglossia}  
+% change the language and variant for your own needs                              
+\setdefaultlanguage{french}
+
+\usepackage[%
+  style=authoryear,%
+  alldates=long,%
+  language=auto,%
+  autolang=langname,%
+  backend=biber]{biblatex}
+
+% use standard math symbols
+\usepackage{amssymb}
+
+% for \text inside formulas and for \eqref
+\usepackage{amsmath}
+\usepackage[math-style=ISO]{unicode-math}
+\usepackage[svgnames]{xcolor}
+\usepackage{listings}
+
+% you may not have these fonts on your system to customise this as required
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX}
+\newfontfeature{Microtype}{protrusion=default;expansion=default}
+\setmainfont[Microtype,Ligatures=TeX,Numbers=OldStyle]{Minion Pro}
+\setsansfont[Microtype,Scale=MatchLowercase,Ligatures=TeX]{Myriad Pro}
+\setmonofont[Scale=MatchLowercase,Scale=0.9]{Inconsolata}
+
+% set paragraph spacing
+% no indent, one baseline between paragraphs
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{\baselineskip}
+
+% % Set margins and page layout
+\usepackage[left=2.5cm,right=2.5cm,top=2.5cm,bottom=3cm]{geometry}
+
+% prevent overfull lines
+\setlength{\emergencystretch}{3em}
+
+% for \includegraphics
+\usepackage{graphicx}
+
+% for exact placement of figures
+\usepackage{float}
+
+% for footnotes in tables
+\usepackage{longtable}
+
+% for hyperlinks
+\usepackage[colorlinks,urlcolor=DarkRed,filecolor=DarkRed,linkcolor=DarkRed,citecolor=black]{hyperref}
+\usepackage[all]{hypcap}
+\urlstyle{same}
+
+%% Make the style for Chapters and sections
+%  Used kjh's styles as a starting point:
+%  https://github.com/kjhealy/latex-custom-kjh/blob/master/needs-memoir/memoir-article-styles.sty
+\makechapterstyle{article-sans}{
+    \setsecheadstyle{\Large\sffamily\bfseries\color{darkgray}} 
+    \setsubsecheadstyle{\large\sffamily\bfseries}
+    \setsubsubsecheadstyle{\normalsize\sffamily\itshape}
+    \renewcommand{\printchaptername}{} 
+    \renewcommand{\chapternamenum}{} 
+    \renewcommand{\chapnumfont}{\chaptitlefont} 
+    \renewcommand{\printchapternum}{\chapnumfont \thechapter\space} 
+    \renewcommand{\afterchapternum}{} 
+    \renewcommand{\printchaptername}{\secheadstyle}
+    \renewcommand{\cftchapterfont}{\normalfont} 
+    \renewcommand{\cftchapterpagefont}{\normalfont\sffamily} 
+    \renewcommand{\cftchapterpresnum}{\sffamily} 
+    %\renewcommand{\cftchapterleader}{} 
+    %\renewcommand{\cftchapterafterpnum}{\cftparfillskip}
+    \captiontitlefont{\small}
+    %\settocdepth{chapter}
+    \setsecnumdepth{part}
+    \settocdepth{part}
+    \counterwithout{section}{chapter}
+
+    %% reduce skip after section heading
+    \setaftersecskip{1.7ex}
+
+    %% set name of bibliography to 'references'
+    %%\renewcommand{\bibname}{\mdseries\Large\sffamily References}
+
+    % Titlepage layout
+    \pretitle{\par\vskip 3em 
+        \begin{center}\Huge\sffamily\bfseries\hrule\vskip 0.5em}
+    \posttitle{\end{center}\par\vskip 0.5em\hrule}
+    \preauthor{\begin{center}\Large\vskip 3em}
+    \postauthor{\end{center}}
+    \predate{\begin{center}\normalsize}
+    \postdate{\end{center}}
+
+    %% 'abstract' bigger skip from title
+    \addto\captionsamerican{\renewcommand*{\abstractname}{}}
+    \renewcommand{\abstractnamefont}{\normalfont\scriptsize}
+    \renewcommand{\abstracttextfont}{\normalfont\scriptsize}
+    \abstractrunin
+
+}
+
+% Make figures as wide as the margins
+% Determine if the image is too wide for the page.
+\makeatletter
+\def\ScaleIfNeeded{%
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+% Resize figures that are too wide for the page.
+\let\oldincludegraphics\includegraphics
+\renewcommand\includegraphics[2][]{%
+  \oldincludegraphics[width=\ScaleIfNeeded]{#2}
+}
+
+% use the defined styles for page and chapter
+\pagestyle{plain}
+\chapterstyle{article-sans}
+\tightlists
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhead{}
+\fancyfoot{}
+\lhead{\scshape\textcolor{darkgray}{$title$}}
+\chead{}
+\rhead{}
+\lfoot{\footnotesize $date$}
+\cfoot{}
+\rfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\begin{document}
+
+$body$
+
+\end{document}
