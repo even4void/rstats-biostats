@@ -1,10 +1,10 @@
-Time-stamp: <2018-06-02 10:50:22 chl>
+Time-stamp: <2018-06-02 22:22:32 chl>
 
 * Practicals
 
 Rmd practicals:
 
-- [ ] practical01.Rmd, two-way ANOVA and multiple comparisons
+- [x] practical01.Rmd, two-way ANOVA and multiple comparisons
 - [ ] practical02.Rmd, linear regression and ANCOVA
 - [ ] practical03.Rmd, generalized linear models
 - [ ] practical04.Rmd, ridge regression and bootstrap
@@ -19,7 +19,7 @@ datasets:
 - [ ] Ohio study (illustration GEE)
 - [ ] (illustration ancova)
 - [ ] (illustration estimation: nonparametric and bootstrap)
-- [ ] Rat weight gain (illustation two-way ANOVA)
+- [x] Rat weight gain (illustation two-way ANOVA)
 
 * Handout
 
