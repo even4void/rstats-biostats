@@ -3,6 +3,7 @@ title: "ANOVA et comparaisons multiples"
 output: 
   html_document:
     theme: default
+    css: elements.css
     number_sections: false
     toc: true
     toc_float: true
