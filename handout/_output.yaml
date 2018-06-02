@@ -1,5 +1,0 @@
-pdf_document:
-  template: tmpl.latex
-  latex_engine: xelatex
-  citation_package: biblatex
-  highlight: null

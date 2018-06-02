@@ -1,4 +1,4 @@
-Time-stamp: <2018-06-02 10:29:24 chl>
+Time-stamp: <2018-06-02 10:50:22 chl>
 
 * Practicals
 
@@ -25,3 +25,4 @@ datasets:
 
 - [ ] replace Pandoc template with YAML options only?
 - [ ] add memento R
+- [ ] choose a better HTML theme (https://bootswatch.com/3/)

@@ -131,8 +131,8 @@
 \fancyfoot{}
 \lhead{\scshape\textcolor{darkgray}{$title$}}
 \chead{}
-\rhead{}
-\lfoot{\footnotesize $date$}
+\rhead{$subtitle$}
+\lfoot{$for(author)$$author$$sep$, $endfor$}
 \cfoot{}
 \rfoot{\thepage}
 \renewcommand{\headrulewidth}{0.4pt}

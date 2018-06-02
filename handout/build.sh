@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
 
-Rscript -e "rmarkdown::render('handout.Rmd', c('html_document', 'pdf_document'))"
+for f in *.Rmd; do Rscript -e "rmarkdown::render('$f')"; done
