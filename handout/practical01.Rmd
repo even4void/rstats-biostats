@@ -8,13 +8,17 @@ output:
     toc: true
     toc_float: true
     code_folding: show
+    highlight: null
     df_print: paged
 ---
 
-Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2** et **hrbrthemes** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes"))`) s'ils ne sont pas déjà installés. On supposera de plus que les instructions R sont exécutées dans un environnement de travail avec un répertoire `data/` disponible.
+Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **Hmisc** et **multcomp** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "Hmisc"))`) s'ils ne sont pas déjà installés. On supposera de plus que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`.
 ```{r, message = FALSE}
 library(ggplot2)
 library(hrbrthemes)
+library(Hmisc)
+library(multcomp)
+options(digits = 6, show.signif.stars = FALSE)
 theme_set(theme_ipsum(base_size = 11))
 ```
 
@@ -22,10 +26,48 @@ theme_set(theme_ipsum(base_size = 11))
 # Rappels sur l'ANOVA à un facteur
 
 ## Chargement des données
+On utilise les données sur le polymorphisme du gène du récepteur estrogène. Le chargement des données au format Stata nécessite le package **foreign** et peut être réalisé comme suit :
+```{r}
+d <- foreign::read.dta("data/polymorphism.dta")
+str(d)
+```
 
 ## Description des variables
+Pour résumer la structure de données assez simple, on peut calculer l'âge moyen selon les groupes et représenter graphiquement les distributions conditionnelles de l'âge.
+```{r, eval = FALSE}
+aggregate(age ~ genotype, data = d, mean)
+```
+Avec le package **Hmisc**, on peut calculer des résultats plus détaillés et plus facilement exploitables. On utilise la même fonction, `summary()`, que dans le cas du résumé d'un data frame ou d'une variable, et les mêmes arguments que dans le cas de `aggregate()`.
+```{r}
+summary(age ~ genotype, data = d, fun = smean.sd)
+```
+
+Pour représenter les distributions conditionnelles, on peut utiliser des histogrammes d'effectif, des courbes de densité ou des boîtes à moustaches. Voici une solution avec des histogrammes à l'aide de **ggplot2** :
+```{r}
+p <- ggplot(data = d, aes(x = age)) + 
+       geom_histogram(binwidth = 5, fill = "steelblue", color = "steelblue4") +
+       facet_wrap(~ genotype, ncol = 3) +
+       labs(x = "Age at diagnosis", y = "Count")
+p
+```
 
 ## Modélisation
+La commande `aov()` permet de décomposer la variance totale entre les différentes sources de variations (nécessairement de type `factor()`) indiquées dans le modèle et le terme d'érreur ("résiduelle"). On l'utilise généralement en combinaison avec `summary()` pour produire le tableau d'ANOVA :
+```{r}
+m <- aov(age ~ genotype, data = d)
+summary(m)
+```
+
+On peut comparer l'ensemble des paires de moyennes à l'aide de simples tests de Student non protégés :
+```{r}
+with(d, pairwise.t.test(age, genotype, p.adj = "none"))
+```
+
+Notons que l'option par défaut retenue pour `pairwise.t.test()` est de travailler avec la variance commune de l'ensemble des groupes, comme dans l'ANOVA. Pour retrouver les mêmes résultats avec la commande `t.test()`, il faudra désactiver cette option :
+```{r}
+with(d, pairwise.t.test(age, genotype, p.adj = "none", pool.sd = FALSE))
+t.test(age ~ genotype, data = d, subset = genotype != "0.7/0.7", var.equal = TRUE)
+```
 
 
 # Modèle d'ANOVA à deux facteurs
@@ -38,7 +80,6 @@ str(weight)
 ```
 
 ## Description des variables
-
 Les variables peuvent être décrites par colonnes mais il est préférable de réarranger le tableau sous forme de data frame, afin d'avoir une seule variable statistique par colonne :
 ```{r}
 d <- data.frame(weight = as.numeric(unlist(weight)),
@@ -75,12 +116,19 @@ summary(m)
 t.test(weight ~ level, data = d, var.equal = TRUE)
 ```
 
-## Exercices d'application {.tabset}
+# Exercices d'application {.tabset}
 
-### ANOVA à deux facteurs
-
-
-### Comparaisons post-hoc
+## ANOVA à deux facteurs
 
 
-### Spécification de contrastes
+## Comparaisons post-hoc
+
+
+## Spécification de contrastes
+
+
+## Type de sommes de carré
+
+https://stackoverflow.com/questions/12375209/multcomp-tukey-kramer
+
+car::Anova

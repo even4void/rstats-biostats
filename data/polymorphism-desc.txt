@@ -1,0 +1,10 @@
+polymorphism.dta
+
+Polymorphisme et gène du récepteur estrogène
+
+
+Fichier Stata
+
+Référence :
+
+Dupont 2009
