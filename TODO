@@ -1,0 +1,27 @@
+Time-stamp: <2018-06-02 10:29:24 chl>
+
+* Practicals
+
+Rmd practicals:
+
+- [ ] practical01.Rmd, two-way ANOVA and multiple comparisons
+- [ ] practical02.Rmd, linear regression and ANCOVA
+- [ ] practical03.Rmd, generalized linear models
+- [ ] practical04.Rmd, ridge regression and bootstrap
+- [ ] practical05.Rmd, mixed-effect models and GEE
+- [ ] practical06.Rmd, survival analysis
+
+datasets:
+
+- [ ] Sepsis study (application two-group comparison and longitudinal models)
+- [ ] (application two-way ANOVA and contrast)
+- [ ] Fecal fat study (illustration mixed models)
+- [ ] Ohio study (illustration GEE)
+- [ ] (illustration ancova)
+- [ ] (illustration estimation: nonparametric and bootstrap)
+- [ ] Rat weight gain (illustation two-way ANOVA)
+
+* Handout
+
+- [ ] replace Pandoc template with YAML options only?
+- [ ] add memento R

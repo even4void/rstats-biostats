@@ -1,0 +1,14 @@
+
+ohio.rda
+
+A longitudinal study of the health effects of air pollution. 
+
+4 variables : maternal smoking (smoke, considered fixed), time (age), wheezing status (resp, 1=oui 0=non) et identifiant (id) 
+
+Fichier au format RData
+
+Références :
+
+- Ware, J., Dockery, D., Spiro, A., Speizer, F. and Ferris, B. (1984). Passive smoking, gas cook- ing and respiratory health in children living in six cities. American Review of Respiratory Diseases, 129, 366–374. PMID: 6703495.
+
+- Fitzmaurice, G. and Laird, N. (1993). A likelihood-based method for analysing longitudinal binary response. Biometrika, 80(1), 141–151.
