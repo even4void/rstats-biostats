@@ -2,19 +2,86 @@
 title: "Modèle linéaire et applications"
 ---
 
-Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **Hmisc** et **multcomp** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "Hmisc", "multcomp"))`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
+Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **cowplot**, **Hmisc**, **multcomp** et **reshape2** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot", "rms", "multcomp", "reshape2"))`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
 ```{r, message = FALSE}
-library(ggplot2)
 library(hrbrthemes)
 library(directlabels)
-library(Hmisc)
+library(cowplot)
+library(rms)            ## Hmisc, ggplot2
 library(multcomp)
+library(reshape2)
 options(digits = 6, show.signif.stars = FALSE)
 theme_set(theme_ipsum(base_size = 11))
 ```
 
 
 # Régression linéaire simple et multiple
+
+## Chargement des données
+
+Les données utilisées proviennent d'une étude sur le volume expiratoire maximum (en litre par seconde)
+
+```{r}
+load("data/fev.rda")
+str(FEV)
+```
+
+## Description des variables
+
+Un résumé numérique pour l'ensemble des variables peut être obtenu avec `summary()` (on pourrait utiliser la fonction `describe()` de **Hmisc** pour avoir plus de détails) :
+```{r}
+summary(FEV)
+```
+
+On propose quelques pré-traitements pour faciliter les analyses subséquentes :
+```{r}
+describe(FEV$age)
+FEV$age[FEV$age == 3] <- 4         ## low counts in extreme categories
+FEV$age[FEV$age == 19] <- 18
+FEV$height <- FEV$height * 0.0254  ## inches -> meters
+FEV$lfev <- log(FEV$fev)
+```
+
+On va s'intéresser à la relation entre la variable `fev` (voire son log, `lfev`) et les autres variables numériques, `age` et `height`. Voici quelques représentations graphiques préliminaires avec **ggplot2**, dans un premier temps univariées, puis bivariées :
+```{r, warning = FALSE}
+## switch to long format in order to get a facet variable
+d <- melt(FEV[,c("id", "age", "fev", "height")], id.vars = "id")
+levels(d$variable) <- c("Age (yr.)", "FEV (l/s)", "Height (m)")
+p <- ggplot(data = d, aes(x = value)) +
+       geom_line(stat = "density") +
+       geom_rug(size = .5, alpha = .3) +
+       facet_wrap(~ variable, ncol = 3, scales = "free")  +
+       labs(x = "", y = "Density")
+p
+```
+
+
+
+```{r}
+p <- ggplot(data = FEV, aes(x = age, y = fev, color = sex)) +
+       geom_point(alpha = 0.5) +
+       geom_smooth(method = "loess", se = FALSE) +
+       scale_color_manual(values = c("steelblue", "orange")) +
+       guides(color = FALSE) +
+       labs(x = "Age (yr.)", y = "FEV (l/s)")
+p1 <- direct.label(p + aes(label = sex))
+p <- ggplot(data = FEV, aes(x = height, y = fev, color = sex)) +
+       geom_point(alpha = 0.5) +
+       geom_smooth(method = "loess", se = FALSE) +
+       scale_color_manual(values = c("steelblue", "orange")) +
+       guides(color = FALSE) +
+       labs(x = "Height (m)", y = "FEV (l/s)")
+p2 <- direct.label(p + aes(label = sex))
+plot_grid(p1, p2)
+```
+
+## Modélisation
+
+
+## Cas des relations non linéaires 
+
+polynômes fractionnaires, splines
+rcs
 
 # Régression et ANOVA
 

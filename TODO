@@ -1,4 +1,4 @@
-Time-stamp: <2018-06-02 22:22:32 chl>
+Time-stamp: <2018-06-03 15:48:00 chl>
 
 * Practicals
 
@@ -14,7 +14,7 @@ Rmd practicals:
 datasets:
 
 - [ ] Sepsis study (application two-group comparison and longitudinal models)
-- [ ] (application two-way ANOVA and contrast)
+- [x] ToothGrowth (application two-way ANOVA and contrast)
 - [ ] Fecal fat study (illustration mixed models)
 - [ ] Ohio study (illustration GEE)
 - [ ] (illustration ancova)

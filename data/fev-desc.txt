@@ -1,0 +1,10 @@
+fev.rda
+
+
+6 variables 
+
+
+Référence :
+
+Rosner, B. (1999), Fundamentals of Biostatistics, 5th ed., Pacific Grove, CA: Duxbury.
+http://biostat.mc.vanderbilt.edu/wiki/Main/DataSets
