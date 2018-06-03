@@ -2,12 +2,13 @@
 title: "Modèle linéaire et applications"
 ---
 
-Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **cowplot**, **rms**, **multcomp** et **reshape2** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot", "rms", "multcomp", "reshape2"))`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
+Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **cowplot**, **rms**, **mfp**, **multcomp** et **reshape2** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot", "rms", "mfp", "multcomp", "reshape2"))`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
 ```{r, message = FALSE}
 library(hrbrthemes)
 library(directlabels)
 library(cowplot)
 library(rms)            ## Hmisc, ggplot2
+library(mfp)
 library(multcomp)
 library(reshape2)
 options(digits = 6, show.signif.stars = FALSE)
@@ -38,7 +39,7 @@ On propose quelques pré-traitements pour faciliter les analyses subséquentes :
 describe(FEV$age)
 FEV$age[FEV$age == 3] <- 4         ## low counts in extreme categories
 FEV$age[FEV$age == 19] <- 18
-FEV$height <- FEV$height * 0.0254  ## inches -> meters
+FEV$height <- FEV$height * 2.54  ## inches -> centimeters
 FEV$lfev <- log(FEV$fev)
 ```
 
@@ -46,7 +47,7 @@ On va s'intéresser à la relation entre la variable `fev` (voire son log, `lfev
 ```{r, warning = FALSE}
 ## switch to long format in order to get a facet variable
 d <- melt(FEV[,c("id", "age", "fev", "height")], id.vars = "id")
-levels(d$variable) <- c("Age (yr.)", "FEV (l/s)", "Height (m)")
+levels(d$variable) <- c("Age (yr.)", "FEV (l/s)", "Height (cm)")
 p <- ggplot(data = d, aes(x = value)) +
        geom_line(stat = "density") +
        geom_rug(size = .5, alpha = .3) +
@@ -55,6 +56,16 @@ p <- ggplot(data = d, aes(x = value)) +
 p
 ```
 
+```{r, warning = FALSE}
+## switch to long format in order to get a facet variable
+d <- melt(FEV[,c("id", "sex", "smoke", "age", "fev")], measure.vars = 4:5)
+levels(d$variable) <- c("Age (yr.)", "FEV (l/s)")
+p <- ggplot(data = d, aes(x = sex, y = value)) +
+       geom_boxplot() +
+       facet_grid(variable ~ smoke, scales = "free_y") +
+       labs(x = NULL, y = NULL)
+p
+```
 
 
 ```{r}
@@ -70,7 +81,7 @@ p <- ggplot(data = FEV, aes(x = height, y = fev, color = sex)) +
        geom_smooth(method = "loess", se = FALSE) +
        scale_color_manual(values = c("steelblue", "orange")) +
        guides(color = FALSE) +
-       labs(x = "Height (m)", y = "FEV (l/s)")
+       labs(x = "Height (cm)", y = "FEV (l/s)")
 p2 <- direct.label(p + aes(label = sex))
 plot_grid(p1, p2)
 ```
@@ -121,6 +132,35 @@ Il reste quelques observations avec des résidus élevés aux deux extrêmes de 
 influence.measures(m)
 ```
  
+## Autres approches pour la non linéarité
+
+Voici trois approches alternatives permettant de s'affranchir de la stricte linéarité telle qu'assumée dans le modèle de régression linéaire : dans un premier modèle (`m1`), on peut inclure un terme quadratique pour rendre compte du changement de pente apparent pour des tailles supérieures à 160 cm ; sur la même idée, on peut utiliser des polynômes de degré variable, ici d'ordre 3 (`m2`) ; enfin, une approche plus souple par rapport aux polynômes consisterait à utiliser des splines cubiques restreints (`m3`), ici à l'ordre 3 également :  
+```{r}
+m1 <- lm(fev ~ height + I(height^2), data = FEV)
+m2 <- lm(fev ~ poly(height, 3), data = FEV)
+m3 <- lm(fev ~ rcs(height, 3), data = FEV)
+```
+
+Une dernière approche consiste à utiliser des polynömes fractionnaires, l'avantage étant comme dans le cas des splines une plus grande flexibilité et une validation croisée permettant de sélectionner le degré optimal :
+```{r}
+m4 <- mfp(fev ~ fp(height, df = 4, select = .05), data = FEV)
+m4
+```
+
+Les prédcitions de ces différents modèles sont affichées dans la figure suivante.
+
+```{r, echo = FALSE}
+dd <- data.frame(height = 110:190)
+yhat <- cbind.data.frame(dd, y1 = predict(m1, dd), y2 = predict(m2, dd), 
+                         y3 = predict(m3, dd), y4 = predict(m4, dd))
+p <- ggplot(data = FEV, aes(x = height, y = fev)) +
+       geom_point(color = grey(.3), alpha = .5) +
+       geom_line(data = melt(yhat, measure.vars = 2:5), aes(x = height, y = value, color = variable), size = 1) +
+       scale_color_ipsum(name = "", labels = c("height + height²", "poly(height, 3)", "rcs(height, 3)", "fp(height, 4)")) +
+       theme(legend.position = c(0.1, 0.88)) +
+       labs(x = "Height (cm)", y = "FEV (l/s)")
+p
+```
 
 polynômes fractionnaires, splines
 rcs
