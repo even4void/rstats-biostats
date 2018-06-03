@@ -1,14 +1,5 @@
 ---
 title: "ANOVA et comparaisons multiples"
-output: 
-  html_document:
-    theme: default
-    css: elements.css
-    number_sections: false
-    toc: true
-    toc_float: true
-    code_folding: show
-    highlight: null
 ---
 
 Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **Hmisc** et **multcomp** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "Hmisc"))`) s'ils ne sont pas déjà installés. On supposera de plus que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`.
