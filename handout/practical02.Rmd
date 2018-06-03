@@ -77,6 +77,52 @@ plot_grid(p1, p2)
 
 ## Modélisation
 
+Un premier modèle que l'on peut considérer est simplement la relation entre FEV et taille sur l'ensemble de l'échantillon :
+```{r}
+m <- lm(fev ~ height, data = FEV)
+summary(m)
+```
+
+Les graphiques précédents suggérant toutefois une teandance non linéaire lorsque l'on stratifie sur le sexe, on peut regarder si les conditions de validité du modèle sont bien vérifiées, en particulier en analysant les résidus de ce modèle.
+```{r}
+yhat <- fitted(m)
+rstd <- rstandard(m)
+p <- ggplot(data = NULL, aes(x = yhat, y = rstd)) +
+       geom_hline(yintercept = 0, linetype = 1, color = grey(.3)) + 
+       geom_hline(yintercept = c(-2,2), linetype = 2, color = grey(.3)) + 
+       geom_point() +
+       geom_smooth(method = "loess", se = FALSE, color = "lightcoral") +
+       labs(x = "Fitted values", y = "Residuals")
+p
+```
+
+On pourrait utiliser une transformation de Box-Cox pour sélectionner une transformation optimale de la variable réponse pour linéariser la relation, mais on va simplement considérer que la FEV varie linéairement avec le cube de la taille, ce qui revient à modéliser la racine cubique de la FEV, $\sqrt[3]{\text{fev}}$ :
+```{r}
+m <- lm(I(fev ^ (1/3)) ~ height, data = FEV)
+```
+
+```{r, echo = FALSE}
+yhat <- fitted(m)
+names(yhat) <- FEV$id
+rstd <- rstandard(m)
+p <- ggplot(data = NULL, aes(x = yhat, y = rstd)) +
+       geom_hline(yintercept = 0, linetype = 1, color = grey(.3)) + 
+       geom_hline(yintercept = c(-2,2), linetype = 2, color = grey(.3)) + 
+       geom_point() +
+       annotate("text", x = yhat[abs(rstd) > 3], y = rstd[abs(rstd) > 3], 
+                label = names(yhat[abs(rstd) > 3]), size = 3, hjust = -0.5) +
+       geom_smooth(method = "loess", se = FALSE, color = "lightcoral") +
+       labs(x = "Fitted values", y = "Residuals", caption = ~ "Model considering height" ^3)
+p
+```
+
+Il reste quelques observations avec des résidus élevés aux deux extrêmes de la distribution des valeurs prédites (les observations avec des résidus supérieurs à 3 en valeur absolue sont annotés avec l'identifiant du sujet). On peut vérifier si ces observations influencent les paramètres estimés à l'aide des mesures d'influence par _jacknife_ fournies par R :
+```{r}
+influence.measures(m)
+```
+
+
+
 
 ## Cas des relations non linéaires 
 
