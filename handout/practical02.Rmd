@@ -2,11 +2,12 @@
 title: "Modèle linéaire et applications"
 ---
 
-Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **cowplot**, **rms**, **mfp**, **multcomp** et **reshape2** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot", "rms", "mfp", "multcomp", "reshape2"))`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
+Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **cowplot**, **texreg**, **rms**, **mfp**, **multcomp** et **reshape2** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot", "texreg", "rms", "mfp", "multcomp", "reshape2"))`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
 ```{r, message = FALSE}
 library(hrbrthemes)
 library(directlabels)
 library(cowplot)
+library(texreg)
 library(rms)            ## Hmisc, ggplot2
 library(mfp)
 library(multcomp)
@@ -137,7 +138,7 @@ influence.measures(m)
 Voici trois approches alternatives permettant de s'affranchir de la stricte linéarité telle qu'assumée dans le modèle de régression linéaire : dans un premier modèle (`m1`), on peut inclure un terme quadratique pour rendre compte du changement de pente apparent pour des tailles supérieures à 160 cm ; sur la même idée, on peut utiliser des polynômes de degré variable, ici d'ordre 3 (`m2`) ; enfin, une approche plus souple par rapport aux polynômes consisterait à utiliser des splines cubiques restreints (`m3`), ici à l'ordre 3 également :  
 ```{r}
 m1 <- lm(fev ~ height + I(height^2), data = FEV)
-m2 <- lm(fev ~ poly(height, 3), data = FEV)
+m2 <- lm(fev ~ pol(height, 3), data = FEV)        ## or poly(height, 3, raw = TRUE)
 m3 <- lm(fev ~ rcs(height, 3), data = FEV)
 ```
 
@@ -165,15 +166,136 @@ p
 polynômes fractionnaires, splines
 rcs
 
-## Régression multiple
 
 
-# Régression et ANOVA
+# Régression, ANOVA et test t
+
+## Régression sur variable catégorielle
+
+Avec R, il est important de s'assurer que les variables catégorielles sont bien traitées comme des facteurs, à l'exception des variables binaires codées en 0/1 qui ne posent pas de problème particulier (ni en tant que variable réponse, ni en tant que prédicteur). R utilise des contrastes de traitement par défaut, ce qui signifie que la catégorie de référence à laquelle sont comparés tous les autres niveaux est le premier niveau du facteur. 
+
+Voici une application dans laquelle on modélise la FEV en fonction du statut (fumeur/non-fumeur) :
+```{r}
+levels(FEV$smoke)
+m <- lm(fev ~ smoke, data = FEV)
+summary(m)
+confint(m)
+```
+
+On obtiendra le même résultat, au signe près, avec un test t supposant l'égalité des variances :
+```{r}
+t.test(fev ~ smoke, data = FEV, var.equal = TRUE)
+```
+
+Considérons maintenant l'âge, discrétiser en 4 classes d'effectifs équilibrés, et comparons les résultats d'une régression linéaire sur variable numérique (`age`), d'une régression linéaire sur variable catégorielle (`age4`) et d'une ANOVA :
+```{r}
+FEV$age4 <- cut2(FEV$age, g = 4)
+r <- with(FEV, summarize(fev, age4, smean.sd))
+r
+r$fev[2:4] - r$fev[1]
+m1 <- lm(fev ~ age, data = FEV)
+m2 <- lm(fev ~ age4, data = FEV)
+m3 <- aov(fev ~ age4, data = FEV)
+```
+
+Le modèle `m2` fournit 3 coefficients de régression pour la variable âge à 4 modalités ; chacun de ces coefficients représente la différence de moyenne de la catégorie en question par rapport à la première catégorie (4–9 ans) :
+```{r}
+summary(m2)
+```
+
+On retrouvera facilement les différentiels de moyennes :
+```{r}
+r <- with(FEV, summarize(fev, age4, smean.sd))
+r
+```
+
+Voici l'idée schématisée sous forme graphique (les boîtes à moustaches sont alignées sur les centres de classe de la variable `age4`) :
+
+```{r, echo = FALSE}
+FEV$age4c <- as.numeric(as.character(cut2(FEV$age, g = 4, levels.mean = TRUE)))
+p <- ggplot(data = FEV, aes(x = age, y = fev)) +
+       geom_boxplot(aes(x = age4c, y = fev, group = age4c), outlier.size = -1, color = grey(.3), fill = "transparent") +
+       geom_jitter(color = grey(.7), alpha = .5, width = .05) +
+       geom_smooth(method = "lm", color = "steelblue") +
+       labs(x = "Age (yr.)", y = "FEV (l/s)")
+p
+FEV$age4c <- NULL
+```
+
+# Régression multiple
+
+Un autre modèle possible consiste à considérer le statut fumeur et un potentiel facteur de confusion, à savoir l'âge puisqu'en dessous de 9 ans il n'y a pas de fumeurs et qu'au-dessus on a bien deux sous-populations.
+
+```{r, echo = FALSE}
+p <- ggplot(data = FEV, aes(x = age, y = fev, color = smoke)) +
+       geom_point(alpha = 0.5) +
+       geom_smooth(method = "loess", se = FALSE) +
+       annotate("rect", xmin = -Inf, ymin = -Inf, xmax = 9, ymax = Inf, fill = grey(.7), alpha = .5) +
+       scale_color_manual(values = c("steelblue", "orange")) +
+       guides(color = FALSE) +
+       labs(x = "Age (yr.)", y = "FEV (l/s)")
+direct.label(p + aes(label = smoke))
+```
+
+Voici le modèle en question :
+```{r}
+m1 <- lm(fev ~ smoke, data = FEV)
+m2 <- lm(fev ~ age + smoke, data = FEV)
+screenreg(list(m1,m2))
+```
+
+Comme les modèles sont emboîtés, le test du coefficient pour la variable `age` peut se retrouver par simple comparaison de modèles (par test F ou par test du rapport de vraisemblance) :
+```{r}
+anova(m1, m2)
+```
+
+Et voici le modèle incluant un terme d'interaction entre les variables `age` et `smoke` :
+```{r}
+m3 <- lm(fev ~ age + smoke + age:smoke, data = FEV)
+summary(m3)
+```
+
+Le graphique suivant résume la situation, avec des intervalles de confiance à 95 % (non simultanés !) :
+```{r}
+p <- ggplot(data = FEV, aes(x = age, y = fev, color = smoke)) +
+       geom_point(alpha = 0.5) +
+       geom_smooth(method = "lm", show.legend = FALSE) +
+       scale_color_manual("", values = c("steelblue", "orange")) +
+       guides(color = FALSE) +
+       labs(x = "Age (yr.)", y = "FEV (l/s)")
+direct.label(p + aes(label = smoke))
+```
+
+
+Notons que l'on peut toujours utiliser la fonction `ols()` du package **rms** au lieu de la fonction `lm()` de base. Les sorties sont plus riches, il est possible d'introduire une régularisation de type "ridge" et **rms** fournit des procédure de validation et de calibration du modèle. les commandes de post-estimation (en langage Stata) sont plus intéressantes : on pourrait par exemple calculer les valeurs prédites de `fev` en fonction de `smoke` conditionnellement à un ensemble fixe et pré-spécifié de valeurs de `age`. 
+
+En dernier lieu, si l'on rajoute la variable `height` et `height`^2^, on remarquera que l'interaction `age:smoke` n'est plus significative :
+```{r}
+m <- ols(fev ~ age + smoke + age:smoke + pol(height, 2), data = FEV, x = TRUE)
+m
+```
+
+```{r}
+d <- expand.grid(age = 9:18, smoke = levels(FEV$smoke), 
+                 height = seq(120, 180, by = 10))
+yhat <- predict(m, d, se.fit = TRUE)
+d <- cbind.data.frame(d, yhat)
+head(d)
+```
+
+Approche alternative (spécifique au package **rms**) :
+```{r}
+Predict(m, age = 18, height = seq(160, 180, by = 2), 
+        smoke = "current smoker", conf.type = "simult") 
+```
 
 # Analyse de covariance
 
-# Sélection de modèles
+## Chargement des données
 
-# Régression et régularisation
+## Description des variables
+
+## Modélisation
+
 
 # Exercices d'application {.tabset}
