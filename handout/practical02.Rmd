@@ -1,5 +1,6 @@
 ---
-title: "Modèle linéaire et applications"
+title: "Méthodes biostatistiques"
+subtitle: "Modèle linéaire et applications"
 ---
 
 Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **cowplot**, **texreg**, **rms**, **mfp**, **multcomp** et **reshape2** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot", "texreg", "rms", "mfp", "multcomp", "reshape2"))`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
