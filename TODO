@@ -1,28 +1,29 @@
-Time-stamp: <2018-06-03 15:48:00 chl>
+Time-stamp: <2018-06-04 22:14:06 chl>
 
 * Practicals
 
 Rmd practicals:
 
 - [x] practical01.Rmd, two-way ANOVA and multiple comparisons
-- [ ] practical02.Rmd, linear regression and ANCOVA
+- [x] practical02.Rmd, linear regression and ANCOVA
 - [ ] practical03.Rmd, generalized linear models
-- [ ] practical04.Rmd, ridge regression and bootstrap
-- [ ] practical05.Rmd, mixed-effect models and GEE
-- [ ] practical06.Rmd, survival analysis
+- [ ] practical04.Rmd, mixed-effect models and GEE
+- [ ] practical05.Rmd, survival analysis
+- [-] practical06.Rmd, ridge regression and bootstrap
 
 datasets:
 
-- [ ] Sepsis study (application two-group comparison and longitudinal models)
+- [x] Sepsis study (application two-group comparison and longitudinal models)
 - [x] ToothGrowth (application two-way ANOVA and contrast)
-- [ ] Fecal fat study (illustration mixed models)
+- [x] Fecal fat study (illustration mixed models)
 - [ ] Ohio study (illustration GEE)
-- [ ] (illustration ancova)
-- [ ] (illustration estimation: nonparametric and bootstrap)
+- [x] anorexia (illustration ancova)
+- [-] (illustration estimation: nonparametric and bootstrap)
 - [x] Rat weight gain (illustation two-way ANOVA)
+- [ ] pbc.txt (survival analysis)
 
 * Handout
 
-- [ ] replace Pandoc template with YAML options only?
+- [x] replace Pandoc template with YAML options only?
 - [ ] add memento R
-- [ ] choose a better HTML theme (https://bootswatch.com/3/)
+- [-] choose a better HTML theme (https://bootswatch.com/3/)
