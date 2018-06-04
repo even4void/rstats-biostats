@@ -194,7 +194,7 @@ summary(ToothGrowth)
 
 Voici une vue d'ensemble des données individuelles et agrégées :
 ```{r}
-r = aggregate(len ~ dose + supp, data = ToothGrowth, mean)
+r <- aggregate(len ~ dose + supp, data = ToothGrowth, mean)
 p <- ggplot(data = ToothGrowth, aes(x = dose, y = len, color = supp)) +
        geom_point(position = position_jitterdodge(jitter.width = .1, dodge.width = 0.25)) +
        geom_line(data = r, aes(x = dose, y = len, color = supp)) +
