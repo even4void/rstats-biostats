@@ -364,5 +364,20 @@ p
 
 ## Sélection de modèle
 
+On considérera le modèle de base suivant : `bwt ~ lwt + race`.
+
+1. Quelles sont les variables que l'on pourrait ajouter pour améliorer la portée ou la pertinence d'un tel modèle sur le plan de l'interprétation clinique ? Ces variables sont-elles significatives ?
+2. En utilisant une procédure de sélection automatique (`step()`), indiquer parmi l'ensemble des variables du _data frame_ lesquelles pourraient être considérées comme significatives au seuil de 5 %, sans tenir compte des problèmes inhérents à la sélection pas à pas.
+3. Comparer avec les résultats obtenus par une approche reposant sur une pénalisation de type "elasticnet" (package **elasticnet** ou **glmnet**).
+
 
 ## Tests spécifiques
+
+1. Considérons le modèle `bwt ~ lwt + race + smoke`. Estimer les paramètres du modèle avec leurs intervalles de confiance à 95 %.
+2. On souhiate comparer le groupe `white` aux deux groupes réunis `black+other` tout en ajustant sur les deux autres variables du modèle. Proposer une approche reposant sur l'utilisation de contrastes (package **multcomp** ou **rms**). 
+3. Existe t-il une différence signifciative entre les mères qui fument dans la catégorie `white` et celles qui fument dans la catégorie `black` ?
+
+## Estimation par bootstrap
+
+1. Estimer les paramètres du modèle `bwt ~ age + ht` et construire un intervalle de confiance à 95 % pour le coefficient de régression de `ht`.
+2. Comparer avec une approche par bootstrap (package **boot** ou procédure manuelle) pour la construction d'un intervalle de confiance.
