@@ -1,0 +1,27 @@
+---
+title: "Méthodes biostatistiques"
+subtitle: "Régression logistique et régression de Poisson"
+---
+
+# Régression logistique
+
+## Chargement des données
+
+## Description des variables
+
+## Modélisation
+
+## Régression Probit
+
+# Régression de Poisson
+
+## Chargement des données
+
+## Description des variables
+
+## Modélisation
+
+# Extension
+
+# Exercices d'application {.tabset}
+

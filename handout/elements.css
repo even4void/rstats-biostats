@@ -1,5 +1,6 @@
 h1, h2 { color: black }
 h1.title { font-size: 2em; color: rgb(55,123,181) }
+h3.subtitle { color: rgb(55,123,181) }
 h1 { font-size: 1.5em }
 h2 { font-size: 1.2em }
 
