@@ -3,6 +3,17 @@ title: "Méthodes biostatistiques"
 subtitle: "Régression logistique et régression de Poisson"
 ---
 
+Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **cowplot**, **texreg** et **rms** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot", "texreg", "rms")`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
+```{r, message = FALSE}
+library(hrbrthemes)
+library(directlabels)
+library(cowplot)
+library(texreg)
+library(rms)            ## Hmisc, ggplot2
+options(digits = 6, show.signif.stars = FALSE)
+theme_set(theme_ipsum(base_size = 11))
+```
+
 # Régression logistique
 
 ## Chargement des données
@@ -12,6 +23,48 @@ subtitle: "Régression logistique et régression de Poisson"
 ## Modélisation
 
 ## Régression Probit
+
+## Cas des données groupées
+
+À titre d'illustration, voici un exemple d'analyse de données médicales pour lesquelles on dispose de la pression systolique (`bpress`) et de la concentration sanguine en cholestérol (`chol`) chez des patients ayant eu ou non un infarctus du myocarde (`hdis`). Le chargement des données ne pose pas de difficulté car les données sont déjà au format R :
+```{r}
+load("data/hdis.rda")
+str(hdis)
+```
+
+Voici un résumé de la structure de données :
+```{r}
+round(xtabs(hdis/total ~ bpress + chol, data = hdis), 2)
+```
+
+Pour simplifier l'analyse, on va remplacer les catégories de pression systolique par leur centre de classe et analyser cette seule variable en mode numérique. La deuxième étape consiste donc à agréger les données sur les différents niveaux de cholestérol :
+```{r}
+labs <- c(111.5,121.5,131.5,141.5,151.5,161.5,176.5,191.5)
+hdis$bpress <- rep(labs, each = 7)
+d <- aggregate(cbind(hdis, total) ~ bpress, data = hdis, sum)
+```
+
+Voici les proportions de cas :
+```{r}
+d$prop <- d$hdis/d$total
+```
+
+Enfin, voici le modèle de régression logistique où, dans le cas des données groupées, il est nécessaire d'indiquer la variable qui code l'événement positif (celui qui nous intéresse) et l'événement négatif (son complémentaire) :
+```{r}
+m <- glm(cbind(hdis, total-hdis) ~ bpress, data = d, family = binomial)
+d$yhat <- predict(m, type = "response")
+d
+```
+
+Les proportions observées et les valeurs prédites sont représentées dans la figure ci-dessous, la fonction `f` permettant de passer de l'échelle du log odds aux proportions : 
+```{r}
+f <- function(x) 1/(1 + exp(-(coef(m)[1] + coef(m)[2]*x)))
+p <- ggplot(data = d, aes(x = bpress, y = hdis/total)) +
+       geom_point() +
+       stat_function(fun = f, col = "lightcoral", size = 1) +
+       labs(x = "Blodd pressure (mm Hg)", y = "Proportion CHD", caption = "Observed vs. fitted proportions")
+p
+```
 
 # Régression de Poisson
 
