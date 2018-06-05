@@ -32,6 +32,19 @@ birthwt$smoke <- factor(birthwt$smoke, levels = 0:1, labels = c("non-smoker", "s
 birthwt$ftv[birthwt$ftv > 2] <- 2 
 ```
 
+Voici un résumé de la structure de données en considérant la variable `bwt` et en surlignant les observations pour lesquelles `low=1` :
+
+```{r, echo = FALSE}
+p <- ggplot(data = birthwt, aes(x = lwt, y = bwt, color = factor(low))) +
+       geom_point() +
+       geom_smooth(method = "loess", span = 1.5, se = FALSE, color = grey(.3)) +
+       scale_color_manual("", values = c("grey50", "lightcoral")) +
+       facet_wrap(~ race, ncol = 3) +
+       guides(color = FALSE) +
+       labs(x = "Mother weight (kg)", y = "Baby weight (g)")
+p
+```
+
 ## Description des variables
 
 ```{r}
@@ -57,6 +70,30 @@ p
 ```
 
 ## Modélisation
+
+Le modèle de régression logistique s'écrit :
+```{r}
+m <- glm(low ~ lwt + race + smoke + ui, data = birthwt, family = binomial)
+summary(m)
+```
+
+```{r}
+confint(m)
+exp(coef(m)["smokesmoker"])
+```
+
+Voici les prédictions de ce modèle dans le cas `smoke=smoker` et `ui=1` : 
+```{r}
+d <- expand.grid(lwt = seq(40, 100), race = factor(levels(birthwt$race)), 
+                 smoke = "smoker", ui = 1)
+d$yhat <- predict(m, d, type = "response")
+p <- ggplot(data = d, aes(x = lwt, y = yhat, color = race)) +
+       geom_line(aes(group = race), size = 1) +
+       scale_color_ipsum() +
+       guides(color = FALSE) +
+       labs(x = "Mother weight (kg)", y = "Pr(low = 1)", caption = "Predicted response curves")
+direct.label(p + aes(label = race), method = "smart.grid") 
+```
 
 ## Régression Probit
 
