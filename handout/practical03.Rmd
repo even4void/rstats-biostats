@@ -1,6 +1,6 @@
 ---
 title: "Méthodes biostatistiques"
-subtitle: "Régression logistique et régression de Poisson"
+subtitle: "Modèles de régression pour données non gaussiennes"
 ---
 
 Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **cowplot**, **texreg** et **rms** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot", "texreg", "rms")`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
@@ -18,7 +18,43 @@ theme_set(theme_ipsum(base_size = 11))
 
 ## Chargement des données
 
+Les données ont déjà été examinées sous l'angle de la régression linéaire en considérant la variable `bwt` (poids du bébé) comme variable à expliquer. Dans les analyses qui suivent, on va s'intéresser à la variable `low` qui représente une indicatrice pour le cas `bwt<2500`.
+```{r}
+data(birthwt, package = "MASS")
+str(birthwt)
+```
+
+Voici quelques pré-traitements sur les variables :
+```{r}
+birthwt$lwt <- birthwt$lwt * 0.45
+birthwt$race <- factor(birthwt$race, levels = 1:3, labels = c("white", "black", "other"))
+birthwt$smoke <- factor(birthwt$smoke, levels = 0:1, labels = c("non-smoker", "smoker"))
+birthwt$ftv[birthwt$ftv > 2] <- 2 
+```
+
 ## Description des variables
+
+```{r}
+s <- summary(low ~ age + lwt + race + smoke + ht + ui + ftv, 
+             data = birthwt, method = "reverse")
+print(s, exclude1 = FALSE, npct = "both")
+```
+
+```{r}
+d <- aggregate(low ~ race + cut2(lwt, g = 3) + smoke, data = birthwt, sum)
+```
+
+```{r}
+d$pct <- d$low / nrow(birthwt)
+names(d)[2] <- "age"
+p <- ggplot(data = d, aes(x = pct, y = age)) +
+       geom_line(aes(group = age), color = grey(.7)) +
+       geom_point(aes(color = smoke)) +
+       scale_color_manual("", values = c("steelblue", "orange")) +
+       facet_wrap(~ race, ncol = 3) +
+       labs(x = "Proportion weight < 2.5 kg", y = "Mother age")
+p 
+```
 
 ## Modélisation
 
