@@ -1,6 +1,6 @@
 ---
 title: "Méthodes biostatistiques"
-subtitle: "Modèles à effets aléatoires et modèles de durée"
+subtitle: "Modèles pour données corrélées" 
 ---
 
 Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **ggfortify**, **hrbrthemes**, **directlabels**, **cowplot**, **texreg**, **lme4** et **geepack** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "ggfortify", "hrbrthemes", "directlabels", "cowplot", "texreg", "lme4", "geepack")`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
@@ -20,7 +20,7 @@ theme_set(theme_ipsum(base_size = 11))
 ```
 
 
-# ANOVA et modèles à effets aléatoires
+# Modèles à effets aléatoires
 
 ## Chargement des données
 
@@ -247,7 +247,7 @@ st <- with(sepsis, Surv(time = followup, event = as.numeric(fate)-1))
 summary(survfit(st ~ 1, data = sepsis), times = seq(100, 800, by = 100))
 ```
 
-On peut représenter la probabilité de survie au cours du temps à l'aide d'une courbe de Kaplan-Meier :
+On peut représenter la probabilité de survie au cours du temps à l'aide d'une courbe de Kaplan-Meier : en l'absence de censure, celle-ci représente directement la proportion de décès.
 ```{r}
 s <- survfit(st ~ treat, data = sepsis)
 p <- autoplot(s, censor = FALSE) +

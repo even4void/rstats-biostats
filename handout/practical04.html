@@ -1519,7 +1519,7 @@ div.tocify {
 
 
 <h1 class="title toc-ignore">Méthodes biostatistiques</h1>
-<h3 class="subtitle"><em>Modèles à effets aléatoires et modèles de durée</em></h3>
+<h3 class="subtitle"><em>Modèles pour données corrélées</em></h3>
 
 </div>
 
@@ -1537,8 +1537,8 @@ library(geepack)
 library(reshape2)
 options(digits = 6, show.signif.stars = FALSE)
 theme_set(theme_ipsum(base_size = 11))</code></pre>
-<div id="anova-et-modeles-a-effets-aleatoires" class="section level1">
-<h1>ANOVA et modèles à effets aléatoires</h1>
+<div id="modeles-a-effets-aleatoires" class="section level1">
+<h1>Modèles à effets aléatoires</h1>
 <div id="chargement-des-donnees" class="section level2">
 <h2>Chargement des données</h2>
 <p>Les données analysées ci-après proviennent d’un plan d’expérience dans lequel on s’intéresse à l’excès de graisses dans les selles causé par un déficit en enzymes digestives au niveau de l’intestin. Les mêmes sujets ont été soumis à différents traitements (suppléments en enzyme pancréatique). Il y a donc plusieurs observations par sujet. Les données sont disponibles au format RData :</p>
@@ -1926,7 +1926,7 @@ summary(survfit(st ~ 1, data = sepsis), times = seq(100, 800, by = 100))</code><
 ##   500    308       8    0.677  0.0219        0.635        0.721
 ##   600    290      18    0.637  0.0225        0.595        0.683
 ##   700    282       8    0.620  0.0228        0.577        0.666</code></pre>
-<p>On peut représenter la probabilité de survie au cours du temps à l’aide d’une courbe de Kaplan-Meier :</p>
+<p>On peut représenter la probabilité de survie au cours du temps à l’aide d’une courbe de Kaplan-Meier : en l’absence de censure, celle-ci représente directement la proportion de décès.</p>
 <pre class="r"><code>s &lt;- survfit(st ~ treat, data = sepsis)
 p &lt;- autoplot(s, censor = FALSE) +
        scale_color_manual(&quot;&quot;, values = c(&quot;steelblue&quot;, &quot;orange&quot;)) + 
