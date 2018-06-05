@@ -1,6 +1,6 @@
 ---
 title: "Méthodes biostatistiques"
-subtitle: "Modèles à effets aléatoires"
+subtitle: "Modèles à effets aléatoires et modèles de durée"
 ---
 
 Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **cowplot**, **texreg** et **lme4** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot", "texreg", "lme4")`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
@@ -21,11 +21,56 @@ theme_set(theme_ipsum(base_size = 11))
 
 ## Chargement des données
 
+```{r}
+load("data/fat.rda")
+str(fat)
+```
+
 ## Description des variables
+
+Les moyennes et écarts-type pour chaque groupe de traitement sont reportées ci-dessous à l'aide de **Hmisc** :
+```{r}
+summary(fecfat ~ pilltype, data = fat, fun = smean.sd)
+```
+
+Une représentation graphique possible est données ci-après.
+```{r}
+d <- aggregate(fecfat ~ pilltype, data = fat, mean)
+p <- ggplot(data = fat, aes(x = reorder(pilltype, fecfat), y = fecfat)) +
+       geom_line(aes(group = subject), color = grey(.3)) +
+       geom_line(data = d, aes(x = pilltype, y = fecfat, group = 1),
+                 color = "lightcoral", size = 1.2) +
+       labs(x = NULL, y = "Fecal Fat")
+p 
+```
 
 ## Modélisation
 
+Voici différents modèles d'analyse de variance, dont un modèle d'ANOVA à mesures répétées (modèle `m3` ci-dessous) :
+```{r}
+m1 <- aov(fecfat ~ pilltype, data = fat) 
+m2 <- aov(fecfat ~ pilltype + subject, data = fat)
+m3 <- aov(fecfat ~ pilltype + Error(subject), data = fat)
+summary(m3)
+```
 
+Et voici une approche par modèle de régresison à effets aléatoires, ici un intercept aléatoire pour chaque sujet :
+```{r}
+m <- lmer(fecfat ~ pilltype + (1 | subject), data = fat)
+summary(m)
+confint(m)
+```
+
+Visuellement, le modèle à intercept aléatoire se traduit par des profils individuels en tous points identiques à l'exception du niveau moyen : 
+```{r}
+yhat <- predict(m)
+p <- ggplot(data = fat, aes(x = reorder(pilltype, fecfat), y = yhat)) +
+       geom_line(aes(group = subject), color = grey(.3)) +
+       geom_line(data = d, aes(x = pilltype, y = fecfat, group = 1),
+                 color = "lightcoral", size = 1.2) +
+       labs(x = NULL, y = "Predicted Fecal Fat")
+p
+```
 
 # Cas des données longitudinales
 
@@ -87,13 +132,13 @@ p
 
 ## Approche par modèle mixte
 
-Notons que la comparaison `temp0` versus `temp1` ne nécessiterait qu'une analyse de covariance. Ici, on souhaite modéliser l'ensemble des trajectoires individuelles dans les deux groupes. On aura donc quatre variables statistiques : l'identifiant du patient, le temps, le groupe de traitement et la réponse, et il faudra travailler avec le data frame en "format long" (`sepsis.long`). Le package **lme4** est requis pour ces analyses (par commodité d'affichage et rapidité de calcul) mais on pourrait utiliser le package **nlme** également. Pour simplifier l'analyse, on ne se préoccupe pas des données manquantes et on ne considèrera que deux modèles simples : (la syntaxe **nlme** est indiquée en commentaire)
+Notons que la comparaison `temp0` versus `temp1` ne nécessiterait qu'une analyse de covariance. Ici, on souhaite modéliser l'ensemble des trajectoires individuelles dans les deux groupes. On aura donc quatre variables statistiques : l'identifiant du patient, le temps, le groupe de traitement et la réponse, et il faudra travailler avec le data frame en "format long" (`sepsis.long`). Le package **lme4** est requis pour ces analyses (par commodité d'affichage et rapidité de calcul) mais on pourrait utiliser le package **nlme** également. Pour simplifier l'analyse, on ne se préoccupe pas des données manquantes (on ne garde que les patients avec les 7 mesures) et on ne considèrera que deux modèles simples : (la syntaxe **nlme** est indiquée en commentaire)
 
 ```{r}
 cc <- aggregate(value ~ treat + id, sepsis.long, length)
-idx <- cc$id[cc$value == 7]
+idx <- cc$id[cc$value == 7]  ## complete case IDs
 d <- subset(sepsis.long, id %in% idx)
-d$id <- droplevels(d$id)  ## n = 328
+d$id <- droplevels(d$id)     ## n = 328
 names(d)[3] <- "time"
 levels(d$time) <- 0:6
 d$time <- as.numeric(as.character(d$time))
@@ -105,7 +150,7 @@ m1 <- lmer(value ~ time * treat + (1 | id), data = d)
 summary(m1)
 ```
 
-Le second modèle inclut une pente aléatoire pour chaque groupe de traitement, en plus de l'intercept aléatoire pour les patients.
+Le second modèle inclut une pente aléatoire pour chaque patient, en plus de l'intercept aléatoire :
 ```{r}
 ## lme(value ~ time * treat, data = d, random = ~ time | id)
 m2 <- lmer(value ~ time * treat + (time | id), data = d)
@@ -154,3 +199,8 @@ plot_grid(p1, p2)
 
 
 ## Approche par équations généralisées
+
+Au lieu de modéliser 
+
+
+# Modèles de durée

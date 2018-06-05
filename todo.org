@@ -10,7 +10,7 @@
 - [X] practical02.Rmd, linear regression and ANCOVA
 - [ ] practical03.Rmd, generalized linear models
 - [ ] practical04.Rmd, mixed-effect models and GEE
-- [ ] practical05.Rmd, survival analysis
+- [ ] practical05.Rmd, survival analysis -> practical04.Rmd
 - [-] practical06.Rmd, ridge regression and bootstrap
 - [ ] add memento R
 - [X] use shared YAML options
@@ -18,7 +18,7 @@
 - [X] Sepsis study (application two-group comparison and longitudinal models)
 - [X] ToothGrowth (application two-way ANOVA and contrast)
 - [X] Fecal fat study (illustration mixed models)
-- [ ] Ohio study (illustration GEE)
+- [-] Ohio study (illustration GEE)
 - [X] anorexia (illustration ancova)
 - [-] (illustration estimation: nonparametric and bootstrap)
 - [X] Rat weight gain (illustation two-way ANOVA)

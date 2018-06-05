@@ -1,0 +1,11 @@
+fat.rda
+
+Lack of digestive enzymes in the intestine can cause bowel absorption problems, as indicated by excess fat in the feces. Pancreatic enzyme supplements can be given to ameliorate the problem.
+
+3 variables : 
+
+Fichier au format RData.
+
+Référence :
+
+Vittinghoff, E., Glidden, D. V., Shiboski, S. C., & McCulloch, C. E. (2005). Regression Methods in Biostatistics. Linear, Logistic, Survival, and Repeated Measures Models. New-York : Springer.
