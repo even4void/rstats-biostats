@@ -6,6 +6,7 @@ all: $(TARGET)
 
 %.html : %.Rmd
 	Rscript -e "rmarkdown::render('$^')"
+    Rscript -e "knitr::purl('$^')"
 
 clean:
 	rm -f $(TARGET)
