@@ -3,12 +3,14 @@ title: "Méthodes biostatistiques"
 subtitle: "Modèles à effets aléatoires"
 ---
 
-Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **cowplot**, **texreg** et **rms** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot", "texreg", "rms")`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
+Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **cowplot**, **texreg** et **lme4** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot", "texreg", "lme4")`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
 ```{r, message = FALSE}
 library(hrbrthemes)
 library(directlabels)
 library(cowplot)
+library(texreg)
 library(Hmisc)
+library(lme4)
 library(reshape2)
 options(digits = 6, show.signif.stars = FALSE)
 theme_set(theme_ipsum(base_size = 11))
@@ -29,6 +31,7 @@ theme_set(theme_ipsum(base_size = 11))
 
 ## Chargement des données
 
+Les données pour cette illustration portent sur un essai clinique randomisé comprenant deux bras de traitement et visant à étudier l'effet de l'administration d’ibuprofène par voie intraveineuse sur la mortalité de patients en état septique sévère. Les données sont disponibles au format Stata : 
 ```{r}
 sepsis <- foreign::read.dta("../data/sepsis.dta")
 str(sepsis)
@@ -39,13 +42,20 @@ Voici quelques pré-traitements utiles :
 sepsis$treat <- as.factor(sepsis$treat)
 sepsis$id <- factor(sepsis$id)
 sepsis.long <- melt(sepsis, measure.vars = 8:14, id.vars = 1:2)
-celsius2fahr <- function(x) (x-32) / 1.8
+celsius2fahr <- function(x) (x-32) / 1.8              ## °F -> °C
 sepsis.long$value <- celsius2fahr(sepsis.long$value)
 ```
 
 ## Description des variables
 
+On ne s'intéresse qu'aux variables `treat` (groupe de traitement), `race` (ethnicité), `fate` (statut vital) et les différentes mesures de température (`temp*`). Il est possible d'aborder ce jeu de données sous un angle d'analyse de survie, mais on va principalement regarder l'évolution de la température après la prise en charge entre les deux groupes de patients. Voici quelques statistiques descriptives obtenues avec le package **Hmisc** :
+```{r}
+s <- summary(treat ~ fate + race + apache + temp0 + temp1, data = sepsis, 
+             method = "reverse", overall = TRUE)
+print(s, digits = 3)
+```
 
+L'évolution de la température (en °C) mesurée toutes les deux heures est résumée dans les deux figures suivantes, sous forme de données individuelles et agrégées sous forme de moyennes par période pour chacun des groupes de traitement.
 ```{r}
 p <- ggplot(data = na.omit(sepsis.long), aes(x = variable, y = value)) +
        geom_line(aes(group = id), col = grey(.7), alpha = .2) +
@@ -59,36 +69,88 @@ p <- ggplot(data = na.omit(sepsis.long), aes(x = variable, y = value)) +
 p
 ```
 
-
-```{r}
-p <- ggplot(data = na.omit(sepsis.long), aes(x = variable, y = value)) +
-       geom_line(aes(group = id), col = grey(.7), alpha = .2) +
-       geom_line(data = subset(na.omit(sepsis.long),
-                               variable %in% c("temp0", "temp1") & treat == "Ibuprofen"),
-                 aes(group = id), color = "orange") +
-       scale_x_discrete(labels = seq(0, 6*2, by = 2)) +
-       scale_y_continuous(breaks = seq(31.5, 43, by = 1.5)) +
-       labs(x = "Durée de suivi (heure)", y = "Température (°C)")
-p
-```
-
 ```{r}
 d <- with(sepsis.long, summarize(value, llist(treat, variable), smean.cl.normal))
 
 p <- ggplot(data = d, aes(x = variable, y = value, shape = treat, color = treat)) +
-  geom_point(size = 2) +
-  geom_line(aes(group = treat)) +
-  geom_errorbar(aes(ymin=Lower, ymax=Upper), width=.1) +
-  scale_color_manual("", values = c("steelblue", "orange")) +
-  scale_x_discrete(labels = seq(0, 6*2, by = 2)) +
-  guides(color = FALSE, shape = FALSE) +
-  geom_dl(aes(label = treat), method = list("smart.grid", cex = .8)) +
-  labs(x = "Durée de suivi (heure)", y = "Température (°C)")
+       geom_point(size = 2) +
+       geom_line(aes(group = treat)) +
+       geom_errorbar(aes(ymin=Lower, ymax=Upper), width=.1) +
+       scale_color_manual("", values = c("steelblue", "orange")) +
+       scale_x_discrete(labels = seq(0, 6*2, by = 2)) +
+       guides(color = FALSE, shape = FALSE) +
+       geom_dl(aes(label = treat), method = list("smart.grid", cex = .8)) +
+       labs(x = "Durée de suivi (heure)", y = "Température (°C)")
 p
 ```
 
 
 ## Approche par modèle mixte
+
+Notons que la comparaison `temp0` versus `temp1` ne nécessiterait qu'une analyse de covariance. Ici, on souhaite modéliser l'ensemble des trajectoires individuelles dans les deux groupes. On aura donc quatre variables statistiques : l'identifiant du patient, le temps, le groupe de traitement et la réponse, et il faudra travailler avec le data frame en "format long" (`sepsis.long`). Le package **lme4** est requis pour ces analyses (par commodité d'affichage et rapidité de calcul) mais on pourrait utiliser le package **nlme** également. Pour simplifier l'analyse, on ne se préoccupe pas des données manquantes et on ne considèrera que deux modèles simples : (la syntaxe **nlme** est indiquée en commentaire)
+
+```{r}
+cc <- aggregate(value ~ treat + id, sepsis.long, length)
+idx <- cc$id[cc$value == 7]
+d <- subset(sepsis.long, id %in% idx)
+d$id <- droplevels(d$id)  ## n = 328
+names(d)[3] <- "time"
+levels(d$time) <- 0:6
+d$time <- as.numeric(as.character(d$time))
+```
+
+```{r}
+## lme(value ~ time * treat, data = d, random = ~ 1 | id)
+m1 <- lmer(value ~ time * treat + (1 | id), data = d)
+summary(m1)
+```
+
+Le second modèle inclut une pente aléatoire pour chaque groupe de traitement, en plus de l'intercept aléatoire pour les patients.
+```{r}
+## lme(value ~ time * treat, data = d, random = ~ time | id)
+m2 <- lmer(value ~ time * treat + (time | id), data = d)
+``` 
+
+Les troisième et quatrième modèles incluent, respectivement, les deux mêmes effets aléatoires, mais cette fois sans corrélation, et seulement une pente aléatoire entre les deux groupes :
+```{r}
+## lme(value ~ time * treat, data = d, random = list(id = pdDiag(~ time)))
+m3 <- lmer(value ~ time * treat + (1 | id) + (0 + time | id), data = d)
+
+## lme(value ~ time * treat, data = d, random = ~ 0 + time | id)
+m4 <- lmer(value ~ time * treat + (0 + time | id), data = d)
+```
+
+
+```{r}
+screenreg(list(m1, m2, m3), include.variance = TRUE)
+```
+
+Test du rapport de vraisemblance entre les deux premiers modèles
+```{r}
+anova(m1, m3, m2)
+```
+
+```{r, echo = FALSE}
+d$yhat1 <- predict(m1)
+d$yhat2 <- predict(m2)
+p1 <- ggplot(data = d, aes(x = time, y = yhat1, color = treat)) +
+       geom_line(aes(group = id), alpha = .2) +
+       scale_x_continuous(breaks = 0:6, labels = seq(0, 6*2, by = 2)) +
+       scale_y_continuous(breaks = seq(31.5, 43, by = 1.5)) +
+       scale_color_manual("", values = c("steelblue", "orange")) +
+       guides(color = FALSE) +
+       geom_dl(aes(label = treat), method = "smart.grid") +
+       labs(x = "Durée de suivi (heure)", y = "Température (°C)", caption = "Model 1")
+p2 <- ggplot(data = d, aes(x = time, y = yhat2, color = treat)) +
+       geom_line(aes(group = id), alpha = .2) +
+       scale_x_continuous(breaks = 0:6, labels = seq(0, 6*2, by = 2)) +
+       scale_y_continuous(breaks = seq(31.5, 43, by = 1.5)) +
+       scale_color_manual("", values = c("steelblue", "orange")) +
+       guides(color = FALSE) +
+       geom_dl(aes(label = treat), method = "smart.grid") +
+       labs(x = "Durée de suivi (heure)", y = "Température (°C)", caption = "Model 2")
+plot_grid(p1, p2)
+```
 
 
 ## Approche par équations généralisées
