@@ -3,8 +3,10 @@ title: "Méthodes biostatistiques"
 subtitle: "Modèles à effets aléatoires et modèles de durée"
 ---
 
-Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **cowplot**, **texreg** et **lme4** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot", "texreg", "lme4")`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
+Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **ggfortify**, **hrbrthemes**, **directlabels**, **cowplot**, **texreg** et **lme4** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "ggfortify", "hrbrthemes", "directlabels", "cowplot", "texreg", "lme4")`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
 ```{r, message = FALSE}
+library(ggplot2)
+library(ggfortify)
 library(hrbrthemes)
 library(directlabels)
 library(cowplot)
@@ -21,6 +23,7 @@ theme_set(theme_ipsum(base_size = 11))
 
 ## Chargement des données
 
+Les données analysées ci-après proviennent d'un plan d'expérience dans lequel on s'intéresse à l'excès de graisses dans les selles causé par un déficit en enzymes digestives au niveau de l'intestin. Les mêmes sujets ont été soumis à différents traitements (suppléments en enzyme pancréatique). Il y a donc plusieurs observations par sujet. Les données sont disponibles au format RData :
 ```{r}
 load("data/fat.rda")
 str(fat)
@@ -33,7 +36,7 @@ Les moyennes et écarts-type pour chaque groupe de traitement sont reportées ci
 summary(fecfat ~ pilltype, data = fat, fun = smean.sd)
 ```
 
-Une représentation graphique possible est données ci-après.
+Une représentation graphique des données individuelles et moyennes est données ci-après.
 ```{r}
 d <- aggregate(fecfat ~ pilltype, data = fat, mean)
 p <- ggplot(data = fat, aes(x = reorder(pilltype, fecfat), y = fecfat)) +
@@ -46,7 +49,7 @@ p
 
 ## Modélisation
 
-Voici différents modèles d'analyse de variance, dont un modèle d'ANOVA à mesures répétées (modèle `m3` ci-dessous) :
+Voici différents modèles permettant de décomposer la variance totale, dont un modèle d'ANOVA à mesures répétées (modèle `m3` ci-dessous) supposant la symétrie composée de la matrice de variance-covariance :
 ```{r}
 m1 <- aov(fecfat ~ pilltype, data = fat) 
 m2 <- aov(fecfat ~ pilltype + subject, data = fat)
@@ -54,14 +57,14 @@ m3 <- aov(fecfat ~ pilltype + Error(subject), data = fat)
 summary(m3)
 ```
 
-Et voici une approche par modèle de régresison à effets aléatoires, ici un intercept aléatoire pour chaque sujet :
+Et voici une approche par modèle de régression à effets aléatoires, ici un intercept aléatoire pour chaque sujet :
 ```{r}
 m <- lmer(fecfat ~ pilltype + (1 | subject), data = fat)
 summary(m)
 confint(m)
 ```
 
-Visuellement, le modèle à intercept aléatoire se traduit par des profils individuels en tous points identiques à l'exception du niveau moyen : 
+Visuellement, le modèle à intercept aléatoire se traduit par des profils individuels en tous points identiques à l'exception du niveau moyen qui varie d'un individu à l'autre : 
 ```{r}
 yhat <- predict(m)
 p <- ggplot(data = fat, aes(x = reorder(pilltype, fecfat), y = yhat)) +
@@ -200,7 +203,50 @@ plot_grid(p1, p2)
 
 ## Approche par équations généralisées
 
-Au lieu de modéliser 
+
+# Modèle de durée
+
+Au lieu de modéliser l'évolution de la température entre les deux groupes de patients, on peut s'intéresser à la durée avant la survenue d'un décès (`fate`). Voici par exemple un résumé des données croisant cette variable avec le groupe de traitement et la température 12 h après la prise en charge :
+```{r}
+summary(fate ~ treat + temp6, data = sepsis, fun = table)
+```
+
+Le package **survival** permet de traiter le cas de ce type de données, appelées données de survie, pour lesquelles sont associées une variable codant une durée ou une date chronologique et une variable codant un événement binaire (0 = l'événement n'a pas été observé à la dernière date d'observation, 1 = l'événement a été observé ; ici, l'événement est le décès). Voici comment procéder sour R pour définir cette variable composite :
+```{r}
+## 0 = alive, 1 = dead
+st <- with(sepsis, Surv(time = followup, event = as.numeric(fate)-1))
+summary(survfit(st ~ 1, data = sepsis), times = seq(100, 800, by = 100))
+```
+
+On peut représenter la probabilité de survie au cours du temps à l'aide d'une courbe de Kaplan-Meier :
+```{r}
+s <- survfit(st ~ treat, data = sepsis)
+p <- autoplot(s, censor = FALSE) +
+       scale_color_manual("", values = c("steelblue", "orange")) + 
+       scale_fill_manual("", values = c("steelblue", "orange")) +
+       guides(fill = FALSE) +
+       theme(legend.position = c(.9, .9)) +
+       labs(x = "Followup time (hr.)", y = "Probability survival")
+p
+```
+
+Test du log-rank
+```{r}
+survdiff(st ~ treat, data = sepsis)
+```
 
 
-# Modèles de durée
+Modèle de Cox :
+```{r}
+m <- coxph(st ~ treat, data = sepsis)
+summary(m)
+```
+
+risque relatif 0.93 (meilleur pronostic même si non significatif)
+
+Modèle plus élaboré :
+```{r}
+m1 <- coxph(st ~ treat + temp0 + race + apache, data = sepsis)
+summary(m1)
+```
+
