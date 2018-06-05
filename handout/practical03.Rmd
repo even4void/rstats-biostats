@@ -47,17 +47,16 @@ p
 
 ## Description des variables
 
+Voici un tableau récapitualitif des variables d'intérêt construit avec **Hmisc** :
 ```{r}
 s <- summary(low ~ age + lwt + race + smoke + ht + ui + ftv, 
              data = birthwt, method = "reverse")
 print(s, exclude1 = FALSE, npct = "both")
 ```
 
+Une synthèse graphique de ces mêmes données est proposée ci-dessous : 
 ```{r}
 d <- aggregate(low ~ race + cut2(lwt, g = 3) + smoke, data = birthwt, sum)
-```
-
-```{r}
 d$pct <- d$low / nrow(birthwt)
 names(d)[2] <- "age"
 p <- ggplot(data = d, aes(x = pct, y = age)) +
@@ -73,16 +72,18 @@ p
 
 Le modèle de régression logistique s'écrit :
 ```{r}
-m <- glm(low ~ lwt + race + smoke + ui, data = birthwt, family = binomial)
+fm <- low ~ lwt + race + smoke + ui
+m <- glm(fm, data = birthwt, family = binomial)
 summary(m)
 ```
 
+Une fois les paramètres du modèle estimés, il est possible de calculer les intervalles de confiance ou transformer les coefficients de régression sous forme d'odds-ratio :
 ```{r}
 confint(m)
 exp(coef(m)["smokesmoker"])
 ```
 
-Voici les prédictions de ce modèle dans le cas `smoke=smoker` et `ui=1` : 
+Voici les prédictions de ce modèle dans le cas "le plus défavorable" où `smoke=smoker` et `ui=1` : 
 ```{r}
 d <- expand.grid(lwt = seq(40, 100), race = factor(levels(birthwt$race)), 
                  smoke = "smoker", ui = 1)
@@ -95,7 +96,28 @@ p <- ggplot(data = d, aes(x = lwt, y = yhat, color = race)) +
 direct.label(p + aes(label = race), method = "smart.grid") 
 ```
 
-## Régression Probit
+Le package **rms** offre la commande `lrm()` pour construire des modèles de régression logistique (cas binomial ou variables ordinales). Cette commande fournit des indices supplémentaires concernant la qualité d'ajustement et la qualité discriminante du modèle, et les procédures de post-estimation décrites dans le cas de la régression linéaire :
+```{r}
+ddist <- with(birthwt, datadist(lwt, race, smoke, ui))  ## mandatory for Predict with ggplot, see below
+options(datadist = "ddist")
+m <- lrm(fm, data = birthwt, x = TRUE, y = TRUE)
+m
+```
+
+```{r}
+r <- anova(m)
+```
+
+Outre la possibilité d'utiliser `Predict()` (P majuscule) pour former des prédictions marginales avec ou sans ajustement, il existe une interface avec le package ggplot2. Voici un exemple d'application :
+```{r}
+ggplot(Predict(m, lwt, race="white", smoke, ui=1), anova = r, pval = TRUE)
+```
+
+Enfin, en plus des options disponibles pour la calibration d'un modèle pronostique (`calibrate'()`), rms fournit la commande `validate()` qui permet d'évaluer la stabilité des paramètres par validation croisée (par défaut, bootstrap) : 
+```{r}
+validate(m)
+```
+
 
 ## Cas des données groupées
 
@@ -147,7 +169,6 @@ p
 
 ## Modélisation
 
-# Extension
-
 # Exercices d'application {.tabset}
+
 
