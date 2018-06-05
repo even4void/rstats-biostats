@@ -1840,7 +1840,9 @@ m4 &lt;- lmer(value ~ time * treat + (0 + time | id), data = d)</code></pre>
 </div>
 <div id="approche-par-equations-generalisees" class="section level2">
 <h2>Approche par équations généralisées</h2>
-<pre class="r"><code>m &lt;- geeglm(value ~ time * treat, data = d, id = id, corstr=&quot;exch&quot;, scale.fix=TRUE)
+<p>Contrairement aux approches conditionnelles présentées plus haut, les équations généralisées permettent d’estimer l’évolution moyenne (et la structure de covariance) d’un ensemble d’observations corrélées. Les package <strong>gee</strong> et <strong>geepack</strong> peuvent être utilisés. Les illustrations qui suivent reposent sur <strong>geepack</strong>.</p>
+<p>Voici un modèle équivalent, sur le principe, au modèle à effets aléatoires précédents où l’on modélise l’évolution moyenne de la température en fonction du temps en interaction avec le groupe de traitement et en supposant une matrice de variance-covariance de travail dite “exchangeable” :</p>
+<pre class="r"><code>m &lt;- geeglm(value ~ time * treat, data = d, id = id, corstr = &quot;exch&quot;, scale.fix=TRUE)
 summary(m)</code></pre>
 <pre><code>## 
 ## Call:
@@ -1862,7 +1864,8 @@ summary(m)</code></pre>
 ##       Estimate Std.err
 ## alpha        0       0
 ## Number of clusters:   2296   Maximum cluster size: 1</code></pre>
-<pre class="r"><code>m0 &lt;- geese(value ~ time * treat, data = d, id = id, corstr=&quot;exch&quot;, scale.fix=TRUE)
+<p>Pour obtenir les matrices de variance-covariance estimée et de travail, il est nécessaire d’estimer les paramètres du modèle avec la fonction <code>geese()</code> au lieu de <code>geeglm()</code> :</p>
+<pre class="r"><code>m0 &lt;- geese(value ~ time * treat, data = d, id = id, corstr = &quot;exch&quot;, scale.fix=TRUE)
 m0$vbeta</code></pre>
 <pre><code>##           [,1]      [,2]      [,3]      [,4]
 ## [1,]  0.002959 -0.000685 -0.002959  0.000685
@@ -1875,6 +1878,7 @@ m0$vbeta</code></pre>
 ## [2,] -0.000681  0.000227  0.000681 -0.000227
 ## [3,] -0.002949  0.000681  0.006122 -0.001413
 ## [4,]  0.000681 -0.000227 -0.001413  0.000471</code></pre>
+<p>Enfin, voici les prédictions que donne cette approche marginale :</p>
 <pre class="r"><code>d$yhat3 &lt;- predict(m)
 p &lt;- ggplot(data = d, aes(x = time, y = yhat3, color = treat)) +
        geom_line(aes(group = id), alpha = .2) +
@@ -1995,12 +1999,77 @@ summary(m1)</code></pre>
 <h1>Exercices d’application</h1>
 <div id="donnees-longitudinales" class="section level2">
 <h2>Données longitudinales</h2>
-<p>A longitudinal study of the health effects of air pollution. (Ware et al., 1984; Fitzmaurice and Laird, 1993) Table of counts of wheezing status (Yes/No) for N = 537 children aged 7 to 10 years, with following two factors: maternal smok- ing (smoke, considered fixed) and time (age). What is the marginal expectation of chil- dren’s response as a function of these co- variates (including the interaction smoke:time)?</p>
-<p>data(ohio)</p>
+<p>A longitudinal study of the health effects of air pollution. (Ware et al., 1984; Fitzmaurice and Laird, 1993)<br />
+Table of counts of wheezing status (Yes/No) for N = 537 children aged 7 to 10 years, with following two factors: maternal smoking (smoke, considered fixed) and time (age).</p>
+<p>What is the marginal expectation of children’s response as a function of these co- variates (including the interaction smoke:time)?</p>
+<pre class="r"><code>data(ohio, package = &quot;geepack&quot;)
+str(ohio)</code></pre>
+<pre><code>## 'data.frame':    2148 obs. of  4 variables:
+##  $ resp : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ id   : int  0 0 0 0 1 1 1 1 2 2 ...
+##  $ age  : int  -2 -1 0 1 -2 -1 0 1 -2 -1 ...
+##  $ smoke: int  0 0 0 0 0 0 0 0 0 0 ...</code></pre>
+<pre class="r"><code>ohio$age &lt;- ohio$age + 9    ## in years</code></pre>
+<p>Le tableau suivant résume la proportion de cas en fonction de l’âge (lignes) et du statut fumeur (colonne) :</p>
+<pre class="r"><code>summary(resp ~ age + smoke, data = ohio, method = &quot;cross&quot;)</code></pre>
+<pre><code>## 
+##  mean by age, smoke 
+## 
+## +----+
+## |N   |
+## |resp|
+## +----+
+## +---+-----+-----+-----+
+## |age|  0  |  1  | ALL |
+## +---+-----+-----+-----+
+## |7  | 350 | 187 | 537 |
+## |   |0.160|0.166|0.162|
+## +---+-----+-----+-----+
+## |8  | 350 | 187 | 537 |
+## |   |0.149|0.209|0.169|
+## +---+-----+-----+-----+
+## |9  | 350 | 187 | 537 |
+## |   |0.143|0.187|0.158|
+## +---+-----+-----+-----+
+## |10 | 350 | 187 | 537 |
+## |   |0.106|0.139|0.117|
+## +---+-----+-----+-----+
+## |ALL|1400 | 748 |2148 |
+## |   |0.139|0.175|0.152|
+## +---+-----+-----+-----+</code></pre>
+<ol style="list-style-type: decimal">
+<li>Estimer les paramètres d’un modèle GEE avec une matrice de variance-covariance non stucturée (<code>unstructured</code>) ou “exchangeable” et un terme d’inetraction <code>age:smoke</code>. Attention, la variable étant binaire, il est nécessaire de préciser une famille de type <code>binomial</code>. Le statut fumeur de la mère est-il significatif au seuil conventionel de 5 % ? Même question pour l’âge.</li>
+<li>Calculé l’odds-ratio ajusté pour la variable <code>age</code>, avec son son intervalle de confiance à 95 %.</li>
+<li>Représenter graphiquement les prédictions moyennes de ce modèle.</li>
+</ol>
 </div>
 <div id="donnees-de-survie" class="section level2">
 <h2>Données de survie</h2>
 <p>Dans un essai contre placebo sur la cirrhose biliaire, la D-penicillamine (DPCA) a été introduite dans le bras actif sur une cohorte de 312 patients. Au total, 154 patients ont été randomisés dans le bras actif (variable traitement, <code>rx</code>, 1=Placebo, 2=DPCA). Un ensemble de données telles que l’âge, des données biologiques et signes cliniques variés incluant le niveau de bilirubine sérique (bilirub) sont disponibles dans le fichier <code>pbc.rda</code>. 1 Le status du patient est enregistré dans la variable <code>status</code> (0=vivant, 1=décédé) et la durée de suivi (<code>years</code>) représente le temps écoulé en années depuis la date de diagnostic.</p>
+<p>Les instructions suivantes permettent de charger les données et d’encoder les variables catégorielles :</p>
+<pre class="r"><code>load(&quot;data/pbc.rda&quot;)
+pbc$rx &lt;- factor(pbc$rx, levels = 1:2, labels = c(&quot;Placebo&quot;, &quot;DPCA&quot;))
+pbc$sex &lt;- factor(pbc$sex, levels = 0:1, labels=c(&quot;M&quot;,&quot;F&quot;))</code></pre>
+<p>Voici un tableau descriptif des variables d’intérêt :</p>
+<pre class="r"><code>summary(status ~ rx + sex + cut2(age, g = 4), data = pbc, fun = table)</code></pre>
+<pre><code>## status     N= 312 
+## 
+## +----------------+-----------+---+---+---+
+## |                |           |N  |0  |1  |
+## +----------------+-----------+---+---+---+
+## |rx              |Placebo    |158| 93| 65|
+## |                |DPCA       |154| 94| 60|
+## +----------------+-----------+---+---+---+
+## |sex             |M          | 36| 14| 22|
+## |                |F          |276|173|103|
+## +----------------+-----------+---+---+---+
+## |cut2(age, g = 4)|[26.3,42.3)| 78| 59| 19|
+## |                |[42.3,49.8)| 78| 52| 26|
+## |                |[49.8,56.8)| 78| 41| 37|
+## |                |[56.8,78.4]| 78| 35| 43|
+## +----------------+-----------+---+---+---+
+## |Overall         |           |312|187|125|
+## +----------------+-----------+---+---+---+</code></pre>
 <ol style="list-style-type: decimal">
 <li>Afficher la distribution des durées de suivi des 312 patients, en faisant apparaître distinctement les individus décédés. Calculer le temps médian (en années) de suivi pour chacun des deux groupes de traitement. Combien y’a t-il d’événements positifs au-delà de 10.5 années et quel est le sexe de ces patients ?</li>
 <li>Calculer la médiane de survie et son intervalle de confiance à 95 % pour chaque groupe de sujets et afficher les courbes de survie correspondantes.</li>

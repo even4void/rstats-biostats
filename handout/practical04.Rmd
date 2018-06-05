@@ -204,18 +204,22 @@ plot_grid(p1, p2)
 
 ## Approche par équations généralisées
 
+Contrairement aux approches conditionnelles présentées plus haut, les équations généralisées permettent d'estimer l'évolution moyenne (et la structure de covariance) d'un ensemble d'observations corrélées. Les package **gee** et **geepack** peuvent être utilisés. Les illustrations qui suivent reposent sur **geepack**. 
+
+Voici un modèle équivalent, sur le principe, au modèle à effets aléatoires précédents où l'on modélise l'évolution moyenne de la température en fonction du temps en interaction avec le groupe de traitement et en supposant une matrice de variance-covariance de travail dite "exchangeable" :
 ```{r}
-m <- geeglm(value ~ time * treat, data = d, id = id, corstr="exch", scale.fix=TRUE)
+m <- geeglm(value ~ time * treat, data = d, id = id, corstr = "exch", scale.fix=TRUE)
 summary(m)
 ```
 
-
+Pour obtenir les matrices de variance-covariance estimée et de travail, il est nécessaire d'estimer les paramètres du modèle avec la fonction `geese()` au lieu de `geeglm()` :
 ```{r}
-m0 <- geese(value ~ time * treat, data = d, id = id, corstr="exch", scale.fix=TRUE)
+m0 <- geese(value ~ time * treat, data = d, id = id, corstr = "exch", scale.fix=TRUE)
 m0$vbeta
 m0$vbeta.naiv
 ```
 
+Enfin, voici les prédictions que donne cette approche marginale :
 ```{r}
 d$yhat3 <- predict(m)
 p <- ggplot(data = d, aes(x = time, y = yhat3, color = treat)) +
@@ -279,15 +283,42 @@ summary(m1)
 
 ## Données longitudinales
 
-A longitudinal study of the health effects of air pollution. (Ware et al., 1984; Fitzmaurice and Laird, 1993)
-Table of counts of wheezing status (Yes/No) for N = 537 children aged 7 to 10 years, with following two factors: maternal smok- ing (smoke, considered fixed) and time (age).
-What is the marginal expectation of chil- dren’s response as a function of these co- variates (including the interaction smoke:time)?
+A longitudinal study of the health effects of air pollution. (Ware et al., 1984; Fitzmaurice and Laird, 1993)  
+Table of counts of wheezing status (Yes/No) for N = 537 children aged 7 to 10 years, with following two factors: maternal smoking (smoke, considered fixed) and time (age).
 
-data(ohio)
+What is the marginal expectation of children’s response as a function of these co- variates (including the interaction smoke:time)?
+
+```{r}
+data(ohio, package = "geepack")
+str(ohio)
+ohio$age <- ohio$age + 9    ## in years
+```
+
+Le tableau suivant résume la proportion de cas en fonction de l'âge (lignes) et du statut fumeur (colonne) :
+```{r}
+summary(resp ~ age + smoke, data = ohio, method = "cross")
+```
+
+
+1. Estimer les paramètres d'un modèle GEE avec une matrice de variance-covariance non stucturée (`unstructured`) ou "exchangeable" et un terme d'inetraction `age:smoke`. Attention, la variable étant binaire, il est nécessaire de préciser une famille de type `binomial`. Le statut fumeur de la mère est-il significatif au seuil conventionel de 5 % ? Même question pour l'âge.
+2. Calculé l'odds-ratio ajusté pour la variable `age`, avec son son intervalle de confiance à 95 %. 
+3. Représenter graphiquement les prédictions moyennes de ce modèle.
 
 ## Données de survie
 
 Dans un essai contre placebo sur la cirrhose biliaire, la D-penicillamine (DPCA) a été introduite dans le bras actif sur une cohorte de 312 patients. Au total, 154 patients ont été randomisés dans le bras actif (variable traitement, `rx`, 1=Placebo, 2=DPCA). Un ensemble de données telles que l’âge, des données biologiques et signes cliniques variés incluant le niveau de bilirubine sérique (bilirub) sont disponibles dans le fichier `pbc.rda`. 1 Le status du patient est enregistré dans la variable `status` (0=vivant, 1=décédé) et la durée de suivi (`years`) représente le temps écoulé en années depuis la date de diagnostic.
+
+Les instructions suivantes permettent de charger les données et d'encoder les variables catégorielles :
+```{r}
+load("data/pbc.rda")
+pbc$rx <- factor(pbc$rx, levels = 1:2, labels = c("Placebo", "DPCA"))
+pbc$sex <- factor(pbc$sex, levels = 0:1, labels=c("M","F"))
+```
+
+Voici un tableau descriptif des variables d'intérêt :
+```{r}
+summary(status ~ rx + sex + cut2(age, g = 4), data = pbc, fun = table)
+```
 
 1. Afficher la distribution des durées de suivi des 312 patients, en faisant apparaître distinctement les individus décédés. Calculer le temps médian (en années) de suivi pour chacun des deux groupes de traitement. Combien y’a t-il d’événements positifs au-delà de 10.5 années et quel est le sexe de ces patients ?
 2. Calculer la médiane de survie et son intervalle de confiance à 95 % pour chaque groupe de sujets et afficher les courbes de survie correspondantes.
