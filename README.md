@@ -19,5 +19,6 @@ Les différents jeux de données utilisés pour illustrer les concepts abordés 
 
 Les traitements réalisés avec R font extensivement appel aux packages [Hmisc](https://cran.r-project.org/web/packages/Hmisc/index.html) et [rms](https://cran.r-project.org/web/packages/rms/index.html) pour la modélisation statistique et au package [ggplot2](http://ggplot2.tidyverse.org) pour les visualisations graphiques. Le reste des commandes R se conforme au langage R de base (et non au [tidyverse](https://www.tidyverse.org) en vogue).
 
-- [Biostatistics for Biomedical Research](http://fharrell.com/doc/bbr.pdf) 
+- [Biostatistics for Biomedical Research](http://fharrell.com/doc/bbr.pdf)
+- [Statistical Modeling for Biomedical Researchers](http://biostat.mc.vanderbilt.edu/dupontwd/wddtext/)
 - Ressources connexes : [site de référence BBR](http://biostat.mc.vanderbilt.edu/wiki/Main/ClinStat), [site de référence RMS](http://biostat.mc.vanderbilt.edu/wiki/Main/RmS)
