@@ -1,8 +1,8 @@
+
 *** TODO Complete practicals
 *** DONE Update CSS theme (inline + global?)
 *** TODO Check dataset description file
 *** TODO Add details + links to README
-
 
 * Checklist [8/17]
 
