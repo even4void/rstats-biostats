@@ -3,7 +3,7 @@ title: "Méthodes biostatistiques"
 subtitle: "Modèles à effets aléatoires et modèles de durée"
 ---
 
-Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **ggfortify**, **hrbrthemes**, **directlabels**, **cowplot**, **texreg** et **lme4** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "ggfortify", "hrbrthemes", "directlabels", "cowplot", "texreg", "lme4")`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
+Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **ggfortify**, **hrbrthemes**, **directlabels**, **cowplot**, **texreg**, **lme4** et **geepack** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "ggfortify", "hrbrthemes", "directlabels", "cowplot", "texreg", "lme4", "geepack")`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
 ```{r, message = FALSE}
 library(ggplot2)
 library(ggfortify)
@@ -13,6 +13,7 @@ library(cowplot)
 library(texreg)
 library(Hmisc)
 library(lme4)
+library(geepack)
 library(reshape2)
 options(digits = 6, show.signif.stars = FALSE)
 theme_set(theme_ipsum(base_size = 11))
@@ -203,6 +204,30 @@ plot_grid(p1, p2)
 
 ## Approche par équations généralisées
 
+```{r}
+m <- geeglm(value ~ time * treat, data = d, id = id, corstr="exch", scale.fix=TRUE)
+summary(m)
+```
+
+
+```{r}
+m0 <- geese(value ~ time * treat, data = d, id = id, corstr="exch", scale.fix=TRUE)
+m0$vbeta
+m0$vbeta.naiv
+```
+
+```{r}
+d$yhat3 <- predict(m)
+p <- ggplot(data = d, aes(x = time, y = yhat3, color = treat)) +
+       geom_line(aes(group = id), alpha = .2) +
+       scale_x_continuous(breaks = 0:6, labels = seq(0, 6*2, by = 2)) +
+       scale_y_continuous(breaks = seq(31.5, 43, by = 1.5)) +
+       scale_color_manual("", values = c("steelblue", "orange")) +
+       guides(color = FALSE) +
+       geom_dl(aes(label = treat), method = "smart.grid") +
+       labs(x = "Durée de suivi (heure)", y = "Température (°C)", caption = "Model GEE")
+p
+```
 
 # Modèle de durée
 
@@ -250,3 +275,20 @@ m1 <- coxph(st ~ treat + temp0 + race + apache, data = sepsis)
 summary(m1)
 ```
 
+# Exercices d'application {.tabset}
+
+## Données longitudinales
+
+A longitudinal study of the health effects of air pollution. (Ware et al., 1984; Fitzmaurice and Laird, 1993)
+Table of counts of wheezing status (Yes/No) for N = 537 children aged 7 to 10 years, with following two factors: maternal smok- ing (smoke, considered fixed) and time (age).
+What is the marginal expectation of chil- dren’s response as a function of these co- variates (including the interaction smoke:time)?
+
+data(ohio)
+
+## Données de survie
+
+Dans un essai contre placebo sur la cirrhose biliaire, la D-penicillamine (DPCA) a été introduite dans le bras actif sur une cohorte de 312 patients. Au total, 154 patients ont été randomisés dans le bras actif (variable traitement, `rx`, 1=Placebo, 2=DPCA). Un ensemble de données telles que l’âge, des données biologiques et signes cliniques variés incluant le niveau de bilirubine sérique (bilirub) sont disponibles dans le fichier `pbc.rda`. 1 Le status du patient est enregistré dans la variable `status` (0=vivant, 1=décédé) et la durée de suivi (`years`) représente le temps écoulé en années depuis la date de diagnostic.
+
+1. Afficher la distribution des durées de suivi des 312 patients, en faisant apparaître distinctement les individus décédés. Calculer le temps médian (en années) de suivi pour chacun des deux groupes de traitement. Combien y’a t-il d’événements positifs au-delà de 10.5 années et quel est le sexe de ces patients ?
+2. Calculer la médiane de survie et son intervalle de confiance à 95 % pour chaque groupe de sujets et afficher les courbes de survie correspondantes.
+3. Effectuer un test du log-rank en considérant comme prédicteur le facteur `rx`. Comparer avec les résultats obtenus à partir d'un modèle de Cox.
