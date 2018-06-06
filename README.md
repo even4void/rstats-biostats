@@ -22,3 +22,5 @@ Les traitements réalisés avec R font extensivement appel aux packages [Hmisc](
 - [Biostatistics for Biomedical Research](http://fharrell.com/doc/bbr.pdf)
 - [Statistical Modeling for Biomedical Researchers](http://biostat.mc.vanderbilt.edu/dupontwd/wddtext/)
 - Ressources connexes : [site de référence BBR](http://biostat.mc.vanderbilt.edu/wiki/Main/ClinStat), [site de référence RMS](http://biostat.mc.vanderbilt.edu/wiki/Main/RmS)
+- [Computer Age Statistical Inference: Algorithms, Evidence, and Data Science](https://web.stanford.edu/~hastie/CASI/)
+- [An Introduction to Statistical Learning with Applications in R](http://www-bcf.usc.edu/~gareth/ISL/)
