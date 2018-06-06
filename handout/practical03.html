@@ -1699,17 +1699,17 @@ m</code></pre>
 <p>Enfin, en plus des options disponibles pour la calibration d’un modèle pronostique (<code>calibrate'()</code>), rms fournit la commande <code>validate()</code> qui permet d’évaluer la stabilité des paramètres par validation croisée (par défaut, bootstrap) :</p>
 <pre class="r"><code>validate(m)</code></pre>
 <pre><code>##           index.orig training    test optimism index.corrected  n
-## Dxy           0.4039   0.4415  0.3696   0.0718          0.3321 40
-## R2            0.1595   0.1923  0.1324   0.0599          0.0996 40
-## Intercept     0.0000   0.0000 -0.1314   0.1314         -0.1314 40
-## Slope         1.0000   1.0000  0.7983   0.2017          0.7983 40
-## Emax          0.0000   0.0000  0.0738   0.0738          0.0738 40
-## D             0.1151   0.1418  0.0937   0.0481          0.0670 40
-## U            -0.0106  -0.0106  0.0068  -0.0173          0.0068 40
-## Q             0.1257   0.1524  0.0869   0.0655          0.0602 40
-## B             0.1919   0.1851  0.1994  -0.0143          0.2062 40
-## g             0.9271   1.0414  0.8167   0.2247          0.7024 40
-## gp            0.1767   0.1912  0.1601   0.0311          0.1456 40</code></pre>
+## Dxy           0.4039   0.4569  0.3802   0.0767          0.3272 40
+## R2            0.1595   0.2034  0.1404   0.0630          0.0965 40
+## Intercept     0.0000   0.0000 -0.1027   0.1027         -0.1027 40
+## Slope         1.0000   1.0000  0.8172   0.1828          0.8172 40
+## Emax          0.0000   0.0000  0.0631   0.0631          0.0631 40
+## D             0.1151   0.1511  0.0999   0.0512          0.0639 40
+## U            -0.0106  -0.0106  0.0102  -0.0207          0.0102 40
+## Q             0.1257   0.1617  0.0898   0.0719          0.0538 40
+## B             0.1919   0.1814  0.1988  -0.0174          0.2093 40
+## g             0.9271   1.0883  0.8495   0.2388          0.6883 40
+## gp            0.1767   0.1945  0.1653   0.0292          0.1475 40</code></pre>
 </div>
 <div id="cas-des-donnees-groupees" class="section level2">
 <h2>Cas des données groupées</h2>
@@ -1847,6 +1847,7 @@ p </code></pre>
 <div id="chargement-des-donnees-2" class="section level2">
 <h2>Chargement des données</h2>
 <p>La régression de</p>
+<p>Le package <strong>survival</strong> permet de traiter le cas de ce type de données, appelées données de survie, pour lesquelles sont associées une variable codant une durée ou une date chronologique et une variable codant un événement binaire (0 = l’événement n’a pas été observé à la dernière date d’observation, 1 = l’événement a été observé ; ici, l’événement est le décès). Voici comment procéder sour R pour définir cette variable composite :</p>
 </div>
 <div id="description-des-variables-2" class="section level2">
 <h2>Description des variables</h2>
@@ -1874,12 +1875,45 @@ p </code></pre>
 <li>À l’aide du package glmnet, réaliser une régression logistique avec une pénalisation de type lasso (<code>alpha=1</code>). Comparer les variables sélectionnées avec celles retenues en (1).</li>
 </ol>
 </div>
-<div id="donnees-de-survie" class="section level2">
-<h2>Données de survie</h2>
+<div id="donnees-de-survie-1" class="section level2">
+<h2>Données de survie (1)</h2>
 <p>Les données <code>compliance2.dta</code> (format Stata) contiennent les données d’une étude sur la mortalité de sujets ayant accepté ou non de participer à un programme de dépistage de l’anévrisme de l’aorte abdominale. Au total il y a 555 participants. On souhaite comparer la survie des participants entre les deux groupes (<code>particp</code>). Les informations temporelles consistent en une date d’entrée (<code>randate</code>) et une date de dernier point (<code>enddate</code>) et il faudra donc définir un intervalle <code>(time=, time2=)</code> à partir de ces deux variables.</p>
 <ol style="list-style-type: decimal">
 <li>Construire la courbe de Kaplan Meier pour les deux groupes de cet échantillon et calculer la médiane de survie avec son intervalle de confiance à 95 % pour les deux groupes de sujets.</li>
 <li>Estimer les paramètres d’un modèle de Cox en (a) ajustant ou (b) stratifiant sur l’âge codé en 5 classes (<code>ranagr</code>).</li>
+</ol>
+</div>
+<div id="donnees-de-survie-2" class="section level2">
+<h2>Données de survie (2)</h2>
+<p>Dans un essai contre placebo sur la cirrhose biliaire, la D-penicillamine (DPCA) a été introduite dans le bras actif sur une cohorte de 312 patients. Au total, 154 patients ont été randomisés dans le bras actif (variable traitement, <code>rx</code>, 1=Placebo, 2=DPCA). Un ensemble de données telles que l’âge, des données biologiques et signes cliniques variés incluant le niveau de bilirubine sérique (bilirub) sont disponibles dans le fichier <code>pbc.rda</code>. 1 Le status du patient est enregistré dans la variable <code>status</code> (0=vivant, 1=décédé) et la durée de suivi (<code>years</code>) représente le temps écoulé en années depuis la date de diagnostic.</p>
+<p>Les instructions suivantes permettent de charger les données et d’encoder les variables catégorielles :</p>
+<pre class="r"><code>load(&quot;data/pbc.rda&quot;)
+pbc$rx &lt;- factor(pbc$rx, levels = 1:2, labels = c(&quot;Placebo&quot;, &quot;DPCA&quot;))
+pbc$sex &lt;- factor(pbc$sex, levels = 0:1, labels=c(&quot;M&quot;,&quot;F&quot;))</code></pre>
+<p>Voici un tableau descriptif des variables d’intérêt :</p>
+<pre class="r"><code>summary(status ~ rx + sex + cut2(age, g = 4), data = pbc, fun = table)</code></pre>
+<pre><code>## status     N= 312 
+## 
+## +----------------+-----------+---+---+---+
+## |                |           |N  |0  |1  |
+## +----------------+-----------+---+---+---+
+## |rx              |Placebo    |158| 93| 65|
+## |                |DPCA       |154| 94| 60|
+## +----------------+-----------+---+---+---+
+## |sex             |M          | 36| 14| 22|
+## |                |F          |276|173|103|
+## +----------------+-----------+---+---+---+
+## |cut2(age, g = 4)|[26.3,42.3)| 78| 59| 19|
+## |                |[42.3,49.8)| 78| 52| 26|
+## |                |[49.8,56.8)| 78| 41| 37|
+## |                |[56.8,78.4]| 78| 35| 43|
+## +----------------+-----------+---+---+---+
+## |Overall         |           |312|187|125|
+## +----------------+-----------+---+---+---+</code></pre>
+<ol style="list-style-type: decimal">
+<li>Afficher la distribution des durées de suivi des 312 patients, en faisant apparaître distinctement les individus décédés. Calculer le temps médian (en années) de suivi pour chacun des deux groupes de traitement. Combien y’a t-il d’événements positifs au-delà de 10.5 années et quel est le sexe de ces patients ?</li>
+<li>Calculer la médiane de survie et son intervalle de confiance à 95 % pour chaque groupe de sujets et afficher les courbes de survie correspondantes.</li>
+<li>Effectuer un test du log-rank en considérant comme prédicteur le facteur <code>rx</code>. Comparer avec les résultats obtenus à partir d’un modèle de Cox.</li>
 </ol>
 </div>
 </div>

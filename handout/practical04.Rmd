@@ -12,6 +12,7 @@ library(directlabels)
 library(cowplot)
 library(texreg)
 library(Hmisc)
+library(survival)
 library(lme4)
 library(geepack)
 library(reshape2)
@@ -133,6 +134,20 @@ p <- ggplot(data = d, aes(x = variable, y = value, shape = treat, color = treat)
 p
 ```
 
+Enfin, on peut représenter la probabilité de survie au cours du temps à l'aide d'une courbe de Kaplan-Meier : en l'absence de censure, celle-ci représente directement la proportion de décès.
+```{r}
+## 0 = alive, 1 = dead
+st <- with(sepsis, Surv(time = followup, event = as.numeric(fate)-1))
+s <- survfit(st ~ treat, data = sepsis)
+p <- autoplot(s, censor = FALSE) +
+       scale_color_manual("", values = c("steelblue", "orange")) + 
+       scale_fill_manual("", values = c("steelblue", "orange")) +
+       guides(fill = FALSE) +
+       theme(legend.position = c(.9, .9)) +
+       labs(x = "Followup time (hr.)", y = "Probability survival")
+p
+```
+
 
 ## Approche par modèle mixte
 
@@ -233,55 +248,8 @@ p <- ggplot(data = d, aes(x = time, y = yhat3, color = treat)) +
 p
 ```
 
-# Modèle de durée
 
-Au lieu de modéliser l'évolution de la température entre les deux groupes de patients, on peut s'intéresser à la durée avant la survenue d'un décès (`fate`). Voici par exemple un résumé des données croisant cette variable avec le groupe de traitement et la température 12 h après la prise en charge :
-```{r}
-summary(fate ~ treat + temp6, data = sepsis, fun = table)
-```
-
-Le package **survival** permet de traiter le cas de ce type de données, appelées données de survie, pour lesquelles sont associées une variable codant une durée ou une date chronologique et une variable codant un événement binaire (0 = l'événement n'a pas été observé à la dernière date d'observation, 1 = l'événement a été observé ; ici, l'événement est le décès). Voici comment procéder sour R pour définir cette variable composite :
-```{r}
-## 0 = alive, 1 = dead
-st <- with(sepsis, Surv(time = followup, event = as.numeric(fate)-1))
-summary(survfit(st ~ 1, data = sepsis), times = seq(100, 800, by = 100))
-```
-
-On peut représenter la probabilité de survie au cours du temps à l'aide d'une courbe de Kaplan-Meier : en l'absence de censure, celle-ci représente directement la proportion de décès.
-```{r}
-s <- survfit(st ~ treat, data = sepsis)
-p <- autoplot(s, censor = FALSE) +
-       scale_color_manual("", values = c("steelblue", "orange")) + 
-       scale_fill_manual("", values = c("steelblue", "orange")) +
-       guides(fill = FALSE) +
-       theme(legend.position = c(.9, .9)) +
-       labs(x = "Followup time (hr.)", y = "Probability survival")
-p
-```
-
-Test du log-rank
-```{r}
-survdiff(st ~ treat, data = sepsis)
-```
-
-
-Modèle de Cox :
-```{r}
-m <- coxph(st ~ treat, data = sepsis)
-summary(m)
-```
-
-risque relatif 0.93 (meilleur pronostic même si non significatif)
-
-Modèle plus élaboré :
-```{r}
-m1 <- coxph(st ~ treat + temp0 + race + apache, data = sepsis)
-summary(m1)
-```
-
-# Exercices d'application {.tabset}
-
-## Données longitudinales
+# Exercice d'application 
 
 A longitudinal study of the health effects of air pollution. (Ware et al., 1984; Fitzmaurice and Laird, 1993)  
 Table of counts of wheezing status (Yes/No) for N = 537 children aged 7 to 10 years, with following two factors: maternal smoking (smoke, considered fixed) and time (age).
@@ -304,22 +272,3 @@ summary(resp ~ age + smoke, data = ohio, method = "cross")
 2. Calculé l'odds-ratio ajusté pour la variable `age`, avec son son intervalle de confiance à 95 %. 
 3. Représenter graphiquement les prédictions moyennes de ce modèle.
 
-## Données de survie
-
-Dans un essai contre placebo sur la cirrhose biliaire, la D-penicillamine (DPCA) a été introduite dans le bras actif sur une cohorte de 312 patients. Au total, 154 patients ont été randomisés dans le bras actif (variable traitement, `rx`, 1=Placebo, 2=DPCA). Un ensemble de données telles que l’âge, des données biologiques et signes cliniques variés incluant le niveau de bilirubine sérique (bilirub) sont disponibles dans le fichier `pbc.rda`. 1 Le status du patient est enregistré dans la variable `status` (0=vivant, 1=décédé) et la durée de suivi (`years`) représente le temps écoulé en années depuis la date de diagnostic.
-
-Les instructions suivantes permettent de charger les données et d'encoder les variables catégorielles :
-```{r}
-load("data/pbc.rda")
-pbc$rx <- factor(pbc$rx, levels = 1:2, labels = c("Placebo", "DPCA"))
-pbc$sex <- factor(pbc$sex, levels = 0:1, labels=c("M","F"))
-```
-
-Voici un tableau descriptif des variables d'intérêt :
-```{r}
-summary(status ~ rx + sex + cut2(age, g = 4), data = pbc, fun = table)
-```
-
-1. Afficher la distribution des durées de suivi des 312 patients, en faisant apparaître distinctement les individus décédés. Calculer le temps médian (en années) de suivi pour chacun des deux groupes de traitement. Combien y’a t-il d’événements positifs au-delà de 10.5 années et quel est le sexe de ces patients ?
-2. Calculer la médiane de survie et son intervalle de confiance à 95 % pour chaque groupe de sujets et afficher les courbes de survie correspondantes.
-3. Effectuer un test du log-rank en considérant comme prédicteur le facteur `rx`. Comparer avec les résultats obtenus à partir d'un modèle de Cox.
