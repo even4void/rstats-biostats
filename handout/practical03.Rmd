@@ -165,10 +165,84 @@ p
 
 ## Chargement des données
 
+La régression de Poisson peut être utilisée dans plusieurs contexte différents : en lien avec la régression logistique (conevrgence de la loi de Poisson vers la loi binomiale), dans le cas du calcul de risque relatif dans les modèles de survie, dans le cadre des procédures de standardisation indirecte, ou plus simplement dans le cas des données de comptage. C'est ce dernier cas qui nous intéresse avec les données `schoolinf.rda` qui indiquent le nombre de jours après lequel on a diagnostiqué chez des étudiants la survenue d'une maladie infectieuse. 
+
+```{r}
+load("data/schoolinf.rda")
+str(schoolinf)
+```
+
+## Description des variables
+
+
+```{r}
+p <- ggplot(data = schoolinf, aes(x = days, y = count)) +
+       geom_point() +
+       geom_smooth(method = "loess", color = "lightcoral") +
+       labs(x = "No. days", y = "No. students diagnosed")
+p
+```
+
+## Modélisation
+
+Le modèle de Poisson s'écrit comme dans le cas du modèle logistique, en adpatant simplement le type de famille :
+```{r}
+m1 <- glm(count ~ days, data = schoolinf, family = poisson)
+summary(m1)
+```
+
+On voit que malgré la significativité du coefficient de régression, la variance résiduelle est très élevée (trop proche des degrés de liberté), ce qui suggère un problème de sur-dispersion. Voici une solution pour prendre en compte cette variance non expliquée :
+```{r}
+m2 <- glm(count ~ days, data = schoolinf, family = quasipoisson)
+summary(m2)
+```
+
+On voit qu'il s'agit en fait d'un problème de sous-dispersion (le paramètre de dispersion, une fois estimé et non fixé à 1, est < 1).
+
+Voici les prédictions de ce modèle :
+```{r}
+d <- data.frame(days = seq(0, 150, 2))
+d$yhat <- predict(m2, d, type = "response")
+p <- ggplot(data = schoolinf, aes(x = days, y = count)) +
+       geom_point() +
+       geom_line(data = d, aes(x = days, y = yhat), color = "lightcoral", size = 1) +
+       labs(x = "No. days", y = "No. students diagnosed")
+p 
+```
+
+# Modèle de Cox
+
+## Chargement des données
+
+La régression de
+
 ## Description des variables
 
 ## Modélisation
 
+
 # Exercices d'application {.tabset}
 
+## Régression logistique
+
+Les données `clslowbwt.dta` (format Stata) contiennent des données sur des poids de naissance comparables à celles analysées plus haut. Cette fois, les observations ne sont toutes indépendantes car il y a plusieurs enfants par mère. On ne dispose pas non plus des variables telles que `ht` ou `ui`.
+
+1. Décrire les données, en particulier le poids des bébés (`bwt` et `low`) en fonction des variables d'intérêt (`lwt`, `race`, `smoke`).
+2. Estimer les paramètres d'un modèle prédisant `low` en fonction de ces 3 variables.
+3. Comparer les résultats (en particulier les erreurs standard) avec ceux obtenus en utilisant un estimateur robuste de la variance (utiliser le package **sandwich** et la fonciton `coeftest()` ou la fonction `robcov()` du package **rms**). La variable de cluster sera évidemment l'identifiant des mères.
+
+## Régression logistique pénalisée
+
+Les données `leukemia.rda` contiennent le statut du patient (première colonne) et un ensemble de mesures normalisées d'expression génique (colonne 2 à 3052). L'objectif est de comparer une approche de sélection de variable par tests univariés et par modèle de régerssion pénalisée.
+
+1. Réaliser un test de Student pour chaque variable `X*` et collecter le degré de signification du test. Si le résultat du test stocké dans une variable, il est possible d'accéder à celui-ci en utilisant l'objet `$p.value`. Afficher la distribution de l'ensemble des p-valeurs sous forme d'histogramme. Combien y'a t-il de tests significatifs avec et sans corerction pour les tests multiples ?
+2. À l'aide du package glmnet, réaliser une régression logistique avec une pénalisation de type lasso (`alpha=1`). Comparer les variables sélectionnées avec celles retenues en (1).
+
+
+## Données de survie
+
+Les données `compliance2.dta` (format Stata) contiennent les données d'une étude sur la mortalité de sujets ayant accepté ou non de participer à un programme de dépistage de l'anévrisme de l'aorte abdominale. Au total il y a 555 participants. On souhaite comparer la survie des participants entre les deux groupes (`particp`). Les informations temporelles consistent en une date d'entrée (`randate`) et une date de dernier point (`enddate`) et il faudra donc définir un intervalle `(time=, time2=)` à partir de ces deux variables.
+
+1. Construire la courbe de Kaplan Meier pour les deux groupes de cet échantillon et calculer la médiane de survie avec son intervalle de confiance à 95 % pour les deux groupes de sujets.
+2. Estimer les paramètres d'un modèle de Cox en (a) ajustant ou (b) stratifiant sur l'âge codé en 5 classes (`ranagr`). 
 
