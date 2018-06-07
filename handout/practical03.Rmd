@@ -4,6 +4,7 @@ subtitle: "Modèles de régression pour données non gaussiennes"
 ---
 
 Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **cowplot**, **texreg** et **rms** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot", "texreg", "rms")`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
+
 ```{r, message = FALSE}
 library(hrbrthemes)
 library(directlabels)
@@ -21,17 +22,19 @@ theme_set(theme_ipsum(base_size = 11))
 ## Chargement des données
 
 Les données ont déjà été examinées sous l'angle de la régression linéaire en considérant la variable `bwt` (poids du bébé) comme variable à expliquer. Dans les analyses qui suivent, on va s'intéresser à la variable `low` qui représente une indicatrice pour le cas `bwt<2500`.
+
 ```{r}
 data(birthwt, package = "MASS")
 str(birthwt)
 ```
 
 Voici quelques pré-traitements sur les variables :
+
 ```{r}
 birthwt$lwt <- birthwt$lwt * 0.45
 birthwt$race <- factor(birthwt$race, levels = 1:3, labels = c("white", "black", "other"))
 birthwt$smoke <- factor(birthwt$smoke, levels = 0:1, labels = c("non-smoker", "smoker"))
-birthwt$ftv[birthwt$ftv > 2] <- 2 
+birthwt$ftv[birthwt$ftv > 2] <- 2
 ```
 
 Voici un résumé de la structure de données en considérant la variable `bwt` et en surlignant les observations pour lesquelles `low=1` :
@@ -50,13 +53,15 @@ p
 ## Description des variables
 
 Voici un tableau récapitualitif des variables d'intérêt construit avec **Hmisc** :
+
 ```{r}
-s <- summary(low ~ age + lwt + race + smoke + ht + ui + ftv, 
+s <- summary(low ~ age + lwt + race + smoke + ht + ui + ftv,
              data = birthwt, method = "reverse")
 print(s, exclude1 = FALSE, npct = "both")
 ```
 
-Une synthèse graphique de ces mêmes données est proposée ci-dessous : 
+Une synthèse graphique de ces mêmes données est proposée ci-dessous :
+
 ```{r}
 d <- aggregate(low ~ race + cut2(lwt, g = 3) + smoke, data = birthwt, sum)
 d$pct <- d$low / nrow(birthwt)
@@ -67,12 +72,13 @@ p <- ggplot(data = d, aes(x = pct, y = age)) +
        scale_color_manual("", values = c("steelblue", "orange")) +
        facet_wrap(~ race, ncol = 3) +
        labs(x = "Proportion weight < 2.5 kg", y = "Mother age")
-p 
+p
 ```
 
 ## Modélisation
 
 Le modèle de régression logistique s'écrit :
+
 ```{r}
 fm <- low ~ lwt + race + smoke + ui
 m <- glm(fm, data = birthwt, family = binomial)
@@ -80,14 +86,16 @@ summary(m)
 ```
 
 Une fois les paramètres du modèle estimés, il est possible de calculer les intervalles de confiance ou transformer les coefficients de régression sous forme d'odds-ratio :
+
 ```{r}
 confint(m)
 exp(coef(m)["smokesmoker"])
 ```
 
-Voici les prédictions de ce modèle dans le cas "le plus défavorable" où `smoke=smoker` et `ui=1` : 
+Voici les prédictions de ce modèle dans le cas "le plus défavorable" où `smoke=smoker` et `ui=1` :
+
 ```{r}
-d <- expand.grid(lwt = seq(40, 100), race = factor(levels(birthwt$race)), 
+d <- expand.grid(lwt = seq(40, 100), race = factor(levels(birthwt$race)),
                  smoke = "smoker", ui = 1)
 d$yhat <- predict(m, d, type = "response")
 p <- ggplot(data = d, aes(x = lwt, y = yhat, color = race)) +
@@ -95,10 +103,11 @@ p <- ggplot(data = d, aes(x = lwt, y = yhat, color = race)) +
        scale_color_ipsum() +
        guides(color = FALSE) +
        labs(x = "Mother weight (kg)", y = "Pr(low = 1)", caption = "Predicted response curves")
-direct.label(p + aes(label = race), method = "smart.grid") 
+direct.label(p + aes(label = race), method = "smart.grid")
 ```
 
 Le package **rms** offre la commande `lrm()` pour construire des modèles de régression logistique (cas binomial ou variables ordinales). Cette commande fournit des indices supplémentaires concernant la qualité d'ajustement et la qualité discriminante du modèle, et les procédures de post-estimation décrites dans le cas de la régression linéaire :
+
 ```{r}
 ddist <- with(birthwt, datadist(lwt, race, smoke, ui))  ## mandatory for Predict with ggplot, see below
 options(datadist = "ddist")
@@ -111,30 +120,34 @@ r <- anova(m)
 ```
 
 Outre la possibilité d'utiliser `Predict()` (P majuscule) pour former des prédictions marginales avec ou sans ajustement, il existe une interface avec le package ggplot2. Voici un exemple d'application :
+
 ```{r}
 ggplot(Predict(m, lwt, race="white", smoke, ui=1), anova = r, pval = TRUE)
 ```
 
-Enfin, en plus des options disponibles pour la calibration d'un modèle pronostique (`calibrate'()`), rms fournit la commande `validate()` qui permet d'évaluer la stabilité des paramètres par validation croisée (par défaut, bootstrap) : 
+Enfin, en plus des options disponibles pour la calibration d'un modèle pronostique (`calibrate'()`), rms fournit la commande `validate()` qui permet d'évaluer la stabilité des paramètres par validation croisée (par défaut, bootstrap) :
+
 ```{r}
 validate(m)
 ```
 
-
 ## Cas des données groupées
 
 À titre d'illustration, voici un exemple d'analyse de données médicales pour lesquelles on dispose de la pression systolique (`bpress`) et de la concentration sanguine en cholestérol (`chol`) chez des patients ayant eu ou non un infarctus du myocarde (`hdis`). Le chargement des données ne pose pas de difficulté car les données sont déjà au format R :
+
 ```{r}
 load("data/hdis.rda")
 str(hdis)
 ```
 
 Voici un résumé de la structure de données :
+
 ```{r}
 round(xtabs(hdis/total ~ bpress + chol, data = hdis), 2)
 ```
 
 Pour simplifier l'analyse, on va remplacer les catégories de pression systolique par leur centre de classe et analyser cette seule variable en mode numérique. La deuxième étape consiste donc à agréger les données sur les différents niveaux de cholestérol :
+
 ```{r}
 labs <- c(111.5,121.5,131.5,141.5,151.5,161.5,176.5,191.5)
 hdis$bpress <- rep(labs, each = 7)
@@ -142,18 +155,21 @@ d <- aggregate(cbind(hdis, total) ~ bpress, data = hdis, sum)
 ```
 
 Voici les proportions de cas :
+
 ```{r}
 d$prop <- d$hdis/d$total
 ```
 
 Enfin, voici le modèle de régression logistique où, dans le cas des données groupées, il est nécessaire d'indiquer la variable qui code l'événement positif (celui qui nous intéresse) et l'événement négatif (son complémentaire) :
+
 ```{r}
 m <- glm(cbind(hdis, total-hdis) ~ bpress, data = d, family = binomial)
 d$yhat <- predict(m, type = "response")
 d
 ```
 
-Les proportions observées et les valeurs prédites sont représentées dans la figure ci-dessous, la fonction `f` permettant de passer de l'échelle du log odds aux proportions : 
+Les proportions observées et les valeurs prédites sont représentées dans la figure ci-dessous, la fonction `f` permettant de passer de l'échelle du log odds aux proportions :
+
 ```{r}
 f <- function(x) 1/(1 + exp(-(coef(m)[1] + coef(m)[2]*x)))
 p <- ggplot(data = d, aes(x = bpress, y = hdis/total)) +
@@ -167,7 +183,7 @@ p
 
 ## Chargement des données
 
-La régression de Poisson peut être utilisée dans plusieurs contexte différents : en lien avec la régression logistique (conevrgence de la loi de Poisson vers la loi binomiale), dans le cas du calcul de risque relatif dans les modèles de survie, dans le cadre des procédures de standardisation indirecte, ou plus simplement dans le cas des données de comptage. C'est ce dernier cas qui nous intéresse avec les données `schoolinf.rda` qui indiquent le nombre de jours après lequel on a diagnostiqué chez des étudiants la survenue d'une maladie infectieuse. 
+La régression de Poisson peut être utilisée dans plusieurs contexte différents : en lien avec la régression logistique (conevrgence de la loi de Poisson vers la loi binomiale), dans le cas du calcul de risque relatif dans les modèles de survie, dans le cadre des procédures de standardisation indirecte, ou plus simplement dans le cas des données de comptage. C'est ce dernier cas qui nous intéresse avec les données `schoolinf.rda` qui indiquent le nombre de jours après lequel on a diagnostiqué chez des étudiants la survenue d'une maladie infectieuse.
 
 ```{r}
 load("data/schoolinf.rda")
@@ -175,7 +191,6 @@ str(schoolinf)
 ```
 
 ## Description des variables
-
 
 ```{r}
 p <- ggplot(data = schoolinf, aes(x = days, y = count)) +
@@ -188,12 +203,14 @@ p
 ## Modélisation
 
 Le modèle de Poisson s'écrit comme dans le cas du modèle logistique, en adpatant simplement le type de famille :
+
 ```{r}
 m1 <- glm(count ~ days, data = schoolinf, family = poisson)
 summary(m1)
 ```
 
 On voit que malgré la significativité du coefficient de régression, la variance résiduelle est très élevée (trop proche des degrés de liberté), ce qui suggère un problème de sur-dispersion. Voici une solution pour prendre en compte cette variance non expliquée :
+
 ```{r}
 m2 <- glm(count ~ days, data = schoolinf, family = quasipoisson)
 summary(m2)
@@ -202,6 +219,7 @@ summary(m2)
 On voit qu'il s'agit en fait d'un problème de sous-dispersion (le paramètre de dispersion, une fois estimé et non fixé à 1, est < 1).
 
 Voici les prédictions de ce modèle :
+
 ```{r}
 d <- data.frame(days = seq(0, 150, 2))
 d$yhat <- predict(m2, d, type = "response")
@@ -209,7 +227,7 @@ p <- ggplot(data = schoolinf, aes(x = days, y = count)) +
        geom_point() +
        geom_line(data = d, aes(x = days, y = yhat), color = "lightcoral", size = 1) +
        labs(x = "No. days", y = "No. students diagnosed")
-p 
+p
 ```
 
 # Modèle de Cox
@@ -217,12 +235,11 @@ p
 ## Chargement des données
 
 <div class="outline">
-Le modèle de régression de Cox est un modèle semi-paramétrique simple dans lequel on modélise la fréquence instantanée de l'événement d'intérêt, appelé "hazard", en fonction de variables explicatives sous la forme : 
+Le modèle de régression de Cox est un modèle semi-paramétrique simple dans lequel on modélise la fréquence instantanée de l'événement d'intérêt, appelé "hazard", en fonction de variables explicatives sous la forme :
 $$ \log\big(h(t;x_1,x_2,\dots)\big) = \log\big(h_0(t)\big) + \beta_1x_1 + \beta_2x_2 + \dots $$
 </div>
 
 Le package **survival** permet de traiter le cas de ce type de données, appelées données de survie, pour lesquelles sont associées une variable codant une durée ou une date chronologique et une variable codant un événement binaire (0 = l'événement n'a pas été observé à la dernière date d'observation, 1 = l'événement a été observé ; ici, l'événement est le décès). Voici comment procéder sour R pour définir cette variable composite :
-
 
 ```{r}
 data(lung, package = "survival")
@@ -231,24 +248,27 @@ st <- with(lung, Surv(time=time, event=status))
 head(st)
 ```
 
-
 ## Description des variables
 
 Toutes les commandes R doivent utiliser la variable composite définie par `Surv()`, raison pour laquelle il est plus commode de la stocker une fois pour toutes dans une variable, ici `st`. La médiane de survie et son intervalle de confiance pour l'ensemble des individus s'obtient de la manière suivante :
+
 ```{r}
 s <- survfit(st ~ 1, data=lung)
 s
 ```
 
 Pour obtenir la médiane de survie dans deux groupes, on remplacera le terme d'intercept (`~ 1`) par le facteur correspondant. En réalité, `survfit()` permet de construire la table de mortalité, que l'on peut afficher entièrement ou partiellement en appliquant la méthode `summary()` :
+
 ```{r}
 summary(s, times=seq(1, 200, by=20))
 ```
+
 Enfin, on peut résumer graphiquement cette table de mortalité à l'aide d'une courbe de Kaplan-Meier (KM) :
+
 ```{r}
 s <- survfit(st ~ sex, data=lung)
 p <- autoplot(s, censor = TRUE, censor.colour = grey(.5)) +
-       scale_color_manual("", values = c("steelblue", "orange")) + 
+       scale_color_manual("", values = c("steelblue", "orange")) +
        scale_fill_manual("", values = c("steelblue", "orange")) +
        guides(fill = FALSE) +
        theme(legend.position = c(.9, .9)) +
@@ -256,21 +276,23 @@ p <- autoplot(s, censor = TRUE, censor.colour = grey(.5)) +
 p
 ```
 
-
 ## Modélisation
 
 Le test du log-rank permettant de tester l'égalité de deux courbes de KM s'obtient avec la commande `survdiff()` :
+
 ```{r}
 survdiff(st ~ sex, data=lung)
 ```
 
-Quant au modèle de Cox, la syntaxe est la même que dans le cas des autres modèles, à ceci près que la variable réponse est la variable composite définie plus haut, `st` : 
+Quant au modèle de Cox, la syntaxe est la même que dans le cas des autres modèles, à ceci près que la variable réponse est la variable composite définie plus haut, `st` :
+
 ```{r}
 m <- coxph(st ~ sex, data=lung)
 m
 ```
 
 Il est possible de traiter un cofacteur comme une variable de stratification, de sorte que ses paramètres sont estimés mais ne contribuent pas au degré de liberté du modèle :
+
 ```{r}
 coxph(st ~ sex + strata(age), data=lung)
 ```
@@ -292,19 +314,20 @@ Les données `leukemia.rda` contiennent le statut du patient (première colonne)
 1. Réaliser un test de Student pour chaque variable `X*` et collecter le degré de signification du test. Si le résultat du test stocké dans une variable, il est possible d'accéder à celui-ci en utilisant l'objet `$p.value`. Afficher la distribution de l'ensemble des p-valeurs sous forme d'histogramme. Combien y'a t-il de tests significatifs avec et sans corerction pour les tests multiples ?
 2. À l'aide du package glmnet, réaliser une régression logistique avec une pénalisation de type lasso (`alpha=1`). Comparer les variables sélectionnées avec celles retenues en (1).
 
-
 ## Données de survie (1)
 
 Les données `compliance2.dta` (format Stata) contiennent les données d'une étude sur la mortalité de sujets ayant accepté ou non de participer à un programme de dépistage de l'anévrisme de l'aorte abdominale. Au total il y a 555 participants. On souhaite comparer la survie des participants entre les deux groupes (`particp`). Les informations temporelles consistent en une date d'entrée (`randate`) et une date de dernier point (`enddate`) et il faudra donc définir un intervalle `(time=, time2=)` à partir de ces deux variables.
 
 1. Construire la courbe de Kaplan Meier pour les deux groupes de cet échantillon et calculer la médiane de survie avec son intervalle de confiance à 95 % pour les deux groupes de sujets.
-2. Estimer les paramètres d'un modèle de Cox en (a) ajustant ou (b) stratifiant sur l'âge codé en 5 classes (`ranagr`). 
+2. Estimer les paramètres d'un modèle de Cox en (a) ajustant ou (b) stratifiant sur l'âge codé en 5 classes (`ranagr`).
 
 ## Données de survie (2)
 
 Dans un essai contre placebo sur la cirrhose biliaire, la D-penicillamine (DPCA) a été introduite dans le bras actif sur une cohorte de 312 patients. Au total, 154 patients ont été randomisés dans le bras actif (variable traitement, `rx`, 1=Placebo, 2=DPCA). Un ensemble de données telles que l’âge, des données biologiques et signes cliniques variés incluant le niveau de bilirubine sérique (bilirub) sont disponibles dans le fichier `pbc.rda`. 1 Le status du patient est enregistré dans la variable `status` (0=vivant, 1=décédé) et la durée de suivi (`years`) représente le temps écoulé en années depuis la date de diagnostic.
 
-Les instructions suivantes permettent de charger les données et d'encoder les variables catégorielles :
+Les instructions suivantes permettent de charger les données et d'encoder les
+variables catégorielles :
+
 ```{r}
 load("data/pbc.rda")
 pbc$rx <- factor(pbc$rx, levels = 1:2, labels = c("Placebo", "DPCA"))
@@ -312,6 +335,7 @@ pbc$sex <- factor(pbc$sex, levels = 0:1, labels=c("M","F"))
 ```
 
 Voici un tableau descriptif des variables d'intérêt :
+
 ```{r}
 summary(status ~ rx + sex + cut2(age, g = 4), data = pbc, fun = table)
 ```
