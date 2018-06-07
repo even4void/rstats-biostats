@@ -1,9 +1,10 @@
 ---
 title: "Méthodes biostatistiques"
-subtitle: "Modèles pour données corrélées" 
+subtitle: "Modèles pour données corrélées"
 ---
 
 Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **ggfortify**, **hrbrthemes**, **directlabels**, **cowplot**, **texreg**, **lme4** et **geepack** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "ggfortify", "hrbrthemes", "directlabels", "cowplot", "texreg", "lme4", "geepack")`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
+
 ```{r, message = FALSE}
 library(ggplot2)
 library(ggfortify)
@@ -20,12 +21,12 @@ options(digits = 6, show.signif.stars = FALSE)
 theme_set(theme_ipsum(base_size = 11))
 ```
 
-
 # Modèles à effets aléatoires
 
 ## Chargement des données
 
 Les données analysées ci-après proviennent d'un plan d'expérience dans lequel on s'intéresse à l'excès de graisses dans les selles causé par un déficit en enzymes digestives au niveau de l'intestin. Les mêmes sujets ont été soumis à différents traitements (suppléments en enzyme pancréatique). Il y a donc plusieurs observations par sujet. Les données sont disponibles au format RData :
+
 ```{r}
 load("data/fat.rda")
 str(fat)
@@ -34,11 +35,13 @@ str(fat)
 ## Description des variables
 
 Les moyennes et écarts-type pour chaque groupe de traitement sont reportées ci-dessous à l'aide de **Hmisc** :
+
 ```{r}
 summary(fecfat ~ pilltype, data = fat, fun = smean.sd)
 ```
 
 Une représentation graphique des données individuelles et moyennes est données ci-après.
+
 ```{r}
 d <- aggregate(fecfat ~ pilltype, data = fat, mean)
 p <- ggplot(data = fat, aes(x = reorder(pilltype, fecfat), y = fecfat)) +
@@ -46,27 +49,30 @@ p <- ggplot(data = fat, aes(x = reorder(pilltype, fecfat), y = fecfat)) +
        geom_line(data = d, aes(x = pilltype, y = fecfat, group = 1),
                  color = "lightcoral", size = 1.2) +
        labs(x = NULL, y = "Fecal Fat")
-p 
+p
 ```
 
 ## Modélisation
 
 Voici différents modèles permettant de décomposer la variance totale, dont un modèle d'ANOVA à mesures répétées (modèle `m3` ci-dessous) supposant la symétrie composée de la matrice de variance-covariance :
+
 ```{r}
-m1 <- aov(fecfat ~ pilltype, data = fat) 
+m1 <- aov(fecfat ~ pilltype, data = fat)
 m2 <- aov(fecfat ~ pilltype + subject, data = fat)
 m3 <- aov(fecfat ~ pilltype + Error(subject), data = fat)
 summary(m3)
 ```
 
 Et voici une approche par modèle de régression à effets aléatoires, ici un intercept aléatoire pour chaque sujet :
+
 ```{r}
 m <- lmer(fecfat ~ pilltype + (1 | subject), data = fat)
 summary(m)
 confint(m)
 ```
 
-Visuellement, le modèle à intercept aléatoire se traduit par des profils individuels en tous points identiques à l'exception du niveau moyen qui varie d'un individu à l'autre : 
+Visuellement, le modèle à intercept aléatoire se traduit par des profils individuels en tous points identiques à l'exception du niveau moyen qui varie d'un individu à l'autre :
+
 ```{r}
 yhat <- predict(m)
 p <- ggplot(data = fat, aes(x = reorder(pilltype, fecfat), y = yhat)) +
@@ -81,13 +87,15 @@ p
 
 ## Chargement des données
 
-Les données pour cette illustration portent sur un essai clinique randomisé comprenant deux bras de traitement et visant à étudier l'effet de l'administration d’ibuprofène par voie intraveineuse sur la mortalité de patients en état septique sévère. Les données sont disponibles au format Stata : 
+Les données pour cette illustration portent sur un essai clinique randomisé comprenant deux bras de traitement et visant à étudier l'effet de l'administration d’ibuprofène par voie intraveineuse sur la mortalité de patients en état septique sévère. Les données sont disponibles au format Stata :
+
 ```{r}
 sepsis <- foreign::read.dta("../data/sepsis.dta")
 str(sepsis)
 ```
 
 Voici quelques pré-traitements utiles :
+
 ```{r}
 sepsis$treat <- as.factor(sepsis$treat)
 sepsis$id <- factor(sepsis$id)
@@ -99,13 +107,15 @@ sepsis.long$value <- celsius2fahr(sepsis.long$value)
 ## Description des variables
 
 On ne s'intéresse qu'aux variables `treat` (groupe de traitement), `race` (ethnicité), `fate` (statut vital) et les différentes mesures de température (`temp*`). Il est possible d'aborder ce jeu de données sous un angle d'analyse de survie, mais on va principalement regarder l'évolution de la température après la prise en charge entre les deux groupes de patients. Voici quelques statistiques descriptives obtenues avec le package **Hmisc** :
+
 ```{r}
-s <- summary(treat ~ fate + race + apache + temp0 + temp1, data = sepsis, 
+s <- summary(treat ~ fate + race + apache + temp0 + temp1, data = sepsis,
              method = "reverse", overall = TRUE)
 print(s, digits = 3)
 ```
 
 L'évolution de la température (en °C) mesurée toutes les deux heures est résumée dans les deux figures suivantes, sous forme de données individuelles et agrégées sous forme de moyennes par période pour chacun des groupes de traitement.
+
 ```{r}
 p <- ggplot(data = na.omit(sepsis.long), aes(x = variable, y = value)) +
        geom_line(aes(group = id), col = grey(.7), alpha = .2) +
@@ -135,19 +145,19 @@ p
 ```
 
 Enfin, on peut représenter la probabilité de survie au cours du temps à l'aide d'une courbe de Kaplan-Meier : en l'absence de censure, celle-ci représente directement la proportion de décès.
+
 ```{r}
 ## 0 = alive, 1 = dead
 st <- with(sepsis, Surv(time = followup, event = as.numeric(fate)-1))
 s <- survfit(st ~ treat, data = sepsis)
 p <- autoplot(s, censor = FALSE) +
-       scale_color_manual("", values = c("steelblue", "orange")) + 
+       scale_color_manual("", values = c("steelblue", "orange")) +
        scale_fill_manual("", values = c("steelblue", "orange")) +
        guides(fill = FALSE) +
        theme(legend.position = c(.9, .9)) +
        labs(x = "Followup time (hr.)", y = "Probability survival")
 p
 ```
-
 
 ## Approche par modèle mixte
 
@@ -170,12 +180,14 @@ summary(m1)
 ```
 
 Le second modèle inclut une pente aléatoire pour chaque patient, en plus de l'intercept aléatoire :
+
 ```{r}
 ## lme(value ~ time * treat, data = d, random = ~ time | id)
 m2 <- lmer(value ~ time * treat + (time | id), data = d)
-``` 
+```
 
 Les troisième et quatrième modèles incluent, respectivement, les deux mêmes effets aléatoires, mais cette fois sans corrélation, et seulement une pente aléatoire entre les deux groupes :
+
 ```{r}
 ## lme(value ~ time * treat, data = d, random = list(id = pdDiag(~ time)))
 m3 <- lmer(value ~ time * treat + (1 | id) + (0 + time | id), data = d)
@@ -184,12 +196,12 @@ m3 <- lmer(value ~ time * treat + (1 | id) + (0 + time | id), data = d)
 m4 <- lmer(value ~ time * treat + (0 + time | id), data = d)
 ```
 
-
 ```{r}
 screenreg(list(m1, m2, m3), include.variance = TRUE)
 ```
 
 Test du rapport de vraisemblance entre les deux premiers modèles
+
 ```{r}
 anova(m1, m3, m2)
 ```
@@ -216,18 +228,19 @@ p2 <- ggplot(data = d, aes(x = time, y = yhat2, color = treat)) +
 plot_grid(p1, p2)
 ```
 
-
 ## Approche par équations généralisées
 
-Contrairement aux approches conditionnelles présentées plus haut, les équations généralisées permettent d'estimer l'évolution moyenne (et la structure de covariance) d'un ensemble d'observations corrélées. Les package **gee** et **geepack** peuvent être utilisés. Les illustrations qui suivent reposent sur **geepack**. 
+Contrairement aux approches conditionnelles présentées plus haut, les équations généralisées permettent d'estimer l'évolution moyenne (et la structure de covariance) d'un ensemble d'observations corrélées. Les package **gee** et **geepack** peuvent être utilisés. Les illustrations qui suivent reposent sur **geepack**.
 
 Voici un modèle équivalent, sur le principe, au modèle à effets aléatoires précédents où l'on modélise l'évolution moyenne de la température en fonction du temps en interaction avec le groupe de traitement et en supposant une matrice de variance-covariance de travail dite "exchangeable" :
+
 ```{r}
 m <- geeglm(value ~ time * treat, data = d, id = id, corstr = "exch", scale.fix=TRUE)
 summary(m)
 ```
 
 Pour obtenir les matrices de variance-covariance estimée et de travail, il est nécessaire d'estimer les paramètres du modèle avec la fonction `geese()` au lieu de `geeglm()` :
+
 ```{r}
 m0 <- geese(value ~ time * treat, data = d, id = id, corstr = "exch", scale.fix=TRUE)
 m0$vbeta
@@ -235,6 +248,7 @@ m0$vbeta.naiv
 ```
 
 Enfin, voici les prédictions que donne cette approche marginale :
+
 ```{r}
 d$yhat3 <- predict(m)
 p <- ggplot(data = d, aes(x = time, y = yhat3, color = treat)) +
@@ -248,10 +262,10 @@ p <- ggplot(data = d, aes(x = time, y = yhat3, color = treat)) +
 p
 ```
 
+# Exercice d'application
 
-# Exercice d'application 
+A longitudinal study of the health effects of air pollution. (Ware et al., 1984; Fitzmaurice and Laird, 1993)
 
-A longitudinal study of the health effects of air pollution. (Ware et al., 1984; Fitzmaurice and Laird, 1993)  
 Table of counts of wheezing status (Yes/No) for N = 537 children aged 7 to 10 years, with following two factors: maternal smoking (smoke, considered fixed) and time (age).
 
 What is the marginal expectation of children’s response as a function of these co- variates (including the interaction smoke:time)?
@@ -263,12 +277,12 @@ ohio$age <- ohio$age + 9    ## in years
 ```
 
 Le tableau suivant résume la proportion de cas en fonction de l'âge (lignes) et du statut fumeur (colonne) :
+
 ```{r}
 summary(resp ~ age + smoke, data = ohio, method = "cross")
 ```
 
-
 1. Estimer les paramètres d'un modèle GEE avec une matrice de variance-covariance non stucturée (`unstructured`) ou "exchangeable" et un terme d'inetraction `age:smoke`. Attention, la variable étant binaire, il est nécessaire de préciser une famille de type `binomial`. Le statut fumeur de la mère est-il significatif au seuil conventionel de 5 % ? Même question pour l'âge.
-2. Calculé l'odds-ratio ajusté pour la variable `age`, avec son son intervalle de confiance à 95 %. 
+2. Calculer l'odds-ratio ajusté pour la variable `age`, avec son son intervalle de confiance à 95 %.
 3. Représenter graphiquement les prédictions moyennes de ce modèle.
 

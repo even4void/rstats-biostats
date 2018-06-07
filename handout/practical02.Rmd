@@ -4,6 +4,7 @@ subtitle: "Modèle linéaire et applications"
 ---
 
 Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **cowplot**, **texreg**, **rms**, **mfp**, **multcomp** et **reshape2** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot", "texreg", "rms", "mfp", "multcomp", "reshape2"))`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
+
 ```{r, message = FALSE}
 library(hrbrthemes)
 library(directlabels)
@@ -17,8 +18,7 @@ options(digits = 6, show.signif.stars = FALSE)
 theme_set(theme_ipsum(base_size = 11))
 ```
 
-
-# Régression linéaire simple 
+# Régression linéaire simple
 
 ## Chargement des données
 
@@ -32,11 +32,13 @@ str(FEV)
 ## Description des variables
 
 Un résumé numérique pour l'ensemble des variables peut être obtenu avec `summary()` (on pourrait utiliser la fonction `describe()` de **Hmisc** pour avoir plus de détails) :
+
 ```{r}
 summary(FEV)
 ```
 
 On propose quelques pré-traitements pour faciliter les analyses subséquentes :
+
 ```{r}
 describe(FEV$age)
 FEV$age[FEV$age == 3] <- 4         ## low counts in extreme categories
@@ -46,6 +48,7 @@ FEV$lfev <- log(FEV$fev)
 ```
 
 On va s'intéresser à la relation entre la variable `fev` (voire son log, `lfev`) et les autres variables numériques, `age` et `height`. Voici quelques représentations graphiques préliminaires avec **ggplot2**, dans un premier temps univariées, puis bivariées :
+
 ```{r, warning = FALSE}
 ## switch to long format in order to get a facet variable
 d <- melt(FEV[,c("id", "age", "fev", "height")], id.vars = "id")
@@ -69,7 +72,6 @@ p <- ggplot(data = d, aes(x = sex, y = value)) +
 p
 ```
 
-
 ```{r}
 p <- ggplot(data = FEV, aes(x = age, y = fev, color = sex)) +
        geom_point(alpha = 0.5) +
@@ -91,18 +93,20 @@ plot_grid(p1, p2)
 ## Modélisation
 
 Un premier modèle que l'on peut considérer est simplement la relation entre FEV et taille sur l'ensemble de l'échantillon :
+
 ```{r}
 m <- lm(fev ~ height, data = FEV)
 summary(m)
 ```
 
 Les graphiques précédents suggérant toutefois une teandance non linéaire lorsque l'on stratifie sur le sexe, on peut regarder si les conditions de validité du modèle sont bien vérifiées, en particulier en analysant les résidus de ce modèle.
+
 ```{r}
 yhat <- fitted(m)
 rstd <- rstandard(m)
 p <- ggplot(data = NULL, aes(x = yhat, y = rstd)) +
-       geom_hline(yintercept = 0, linetype = 1, color = grey(.3)) + 
-       geom_hline(yintercept = c(-2,2), linetype = 2, color = grey(.3)) + 
+       geom_hline(yintercept = 0, linetype = 1, color = grey(.3)) +
+       geom_hline(yintercept = c(-2,2), linetype = 2, color = grey(.3)) +
        geom_point() +
        geom_smooth(method = "loess", se = FALSE, color = "lightcoral") +
        labs(x = "Fitted values", y = "Residuals")
@@ -110,6 +114,7 @@ p
 ```
 
 On pourrait utiliser une transformation de Box-Cox ($\tfrac{y^{\lambda}-1}{\lambda}$) ou de Tukey ($y^{\lambda}$) pour sélectionner une transformation optimale de la variable réponse pour linéariser la relation, mais on va simplement considérer que la FEV varie linéairement avec le cube de la taille, ce qui revient à modéliser la racine cubique de la FEV, $\sqrt[3]{\text{fev}}$. En pratique, cela reste assez proche de ce que nous donnerait une transformation de Tukey (on trouve $\lambda = 0.263 \approx 1/3$ en utilisant les instructions R `v <- boxcox(m); v$x[which.max(v$y)]`) :
+
 ```{r}
 m <- lm(I(fev ^ (1/3)) ~ height, data = FEV)
 ```
@@ -119,10 +124,10 @@ yhat <- fitted(m)
 names(yhat) <- FEV$id
 rstd <- rstandard(m)
 p <- ggplot(data = NULL, aes(x = yhat, y = rstd)) +
-       geom_hline(yintercept = 0, linetype = 1, color = grey(.3)) + 
-       geom_hline(yintercept = c(-2,2), linetype = 2, color = grey(.3)) + 
+       geom_hline(yintercept = 0, linetype = 1, color = grey(.3)) +
+       geom_hline(yintercept = c(-2,2), linetype = 2, color = grey(.3)) +
        geom_point() +
-       annotate("text", x = yhat[abs(rstd) > 3], y = rstd[abs(rstd) > 3], 
+       annotate("text", x = yhat[abs(rstd) > 3], y = rstd[abs(rstd) > 3],
                 label = names(yhat[abs(rstd) > 3]), size = 3, hjust = -0.5) +
        geom_smooth(method = "loess", se = FALSE, color = "lightcoral") +
        labs(x = "Fitted values", y = "Residuals", caption = ~ "Model considering height" ^3)
@@ -130,13 +135,15 @@ p
 ```
 
 Il reste quelques observations avec des résidus élevés aux deux extrêmes de la distribution des valeurs prédites (les observations avec des résidus supérieurs à 3 en valeur absolue sont annotés avec l'identifiant du sujet). On peut vérifier si ces observations influencent les paramètres estimés à l'aide des mesures d'influence par _jacknife_ fournies par R :
+
 ```{r}
 influence.measures(m)
 ```
- 
+
 ## Autres approches pour la non linéarité
 
-Voici trois approches alternatives permettant de s'affranchir de la stricte linéarité telle qu'assumée dans le modèle de régression linéaire : dans un premier modèle (`m1`), on peut inclure un terme quadratique pour rendre compte du changement de pente apparent pour des tailles supérieures à 160 cm ; sur la même idée, on peut utiliser des polynômes de degré variable, ici d'ordre 3 (`m2`) ; enfin, une approche plus souple par rapport aux polynômes consisterait à utiliser des splines cubiques restreints (`m3`), ici à l'ordre 3 également :  
+Voici trois approches alternatives permettant de s'affranchir de la stricte linéarité telle qu'assumée dans le modèle de régression linéaire : dans un premier modèle (`m1`), on peut inclure un terme quadratique pour rendre compte du changement de pente apparent pour des tailles supérieures à 160 cm ; sur la même idée, on peut utiliser des polynômes de degré variable, ici d'ordre 3 (`m2`) ; enfin, une approche plus souple par rapport aux polynômes consisterait à utiliser des splines cubiques restreints (`m3`), ici à l'ordre 3 également :
+
 ```{r}
 m1 <- lm(fev ~ height + I(height^2), data = FEV)
 m2 <- lm(fev ~ pol(height, 3), data = FEV)        ## or poly(height, 3, raw = TRUE)
@@ -144,6 +151,7 @@ m3 <- lm(fev ~ rcs(height, 3), data = FEV)
 ```
 
 Une dernière approche consiste à utiliser des polynömes fractionnaires, l'avantage étant comme dans le cas des splines une plus grande flexibilité et une validation croisée permettant de sélectionner le degré optimal :
+
 ```{r}
 m4 <- mfp(fev ~ fp(height, df = 4, select = .05), data = FEV)
 m4
@@ -153,7 +161,7 @@ Les prédcitions de ces différents modèles sont affichées dans la figure suiv
 
 ```{r, echo = FALSE}
 dd <- data.frame(height = 110:190)
-yhat <- cbind.data.frame(dd, y1 = predict(m1, dd), y2 = predict(m2, dd), 
+yhat <- cbind.data.frame(dd, y1 = predict(m1, dd), y2 = predict(m2, dd),
                          y3 = predict(m3, dd), y4 = predict(m4, dd))
 p <- ggplot(data = FEV, aes(x = height, y = fev)) +
        geom_point(color = grey(.3), alpha = .5) +
@@ -164,18 +172,14 @@ p <- ggplot(data = FEV, aes(x = height, y = fev)) +
 p
 ```
 
-polynômes fractionnaires, splines
-rcs
-
-
-
 # Régression, ANOVA et test t
 
 ## Régression sur variable catégorielle
 
-Avec R, il est important de s'assurer que les variables catégorielles sont bien traitées comme des facteurs, à l'exception des variables binaires codées en 0/1 qui ne posent pas de problème particulier (ni en tant que variable réponse, ni en tant que prédicteur). R utilise des contrastes de traitement par défaut, ce qui signifie que la catégorie de référence à laquelle sont comparés tous les autres niveaux est le premier niveau du facteur. 
+Avec R, il est important de s'assurer que les variables catégorielles sont bien traitées comme des facteurs, à l'exception des variables binaires codées en 0/1 qui ne posent pas de problème particulier (ni en tant que variable réponse, ni en tant que prédicteur). R utilise des contrastes de traitement par défaut, ce qui signifie que la catégorie de référence à laquelle sont comparés tous les autres niveaux est le premier niveau du facteur.
 
 Voici une application dans laquelle on modélise la FEV en fonction du statut (fumeur/non-fumeur) :
+
 ```{r}
 levels(FEV$smoke)
 m <- lm(fev ~ smoke, data = FEV)
@@ -184,11 +188,13 @@ confint(m)
 ```
 
 On obtiendra le même résultat, au signe près, avec un test t supposant l'égalité des variances :
+
 ```{r}
 t.test(fev ~ smoke, data = FEV, var.equal = TRUE)
 ```
 
 Considérons maintenant l'âge, discrétiser en 4 classes d'effectifs équilibrés, et comparons les résultats d'une régression linéaire sur variable numérique (`age`), d'une régression linéaire sur variable catégorielle (`age4`) et d'une ANOVA :
+
 ```{r}
 FEV$age4 <- cut2(FEV$age, g = 4)
 r <- with(FEV, summarize(fev, age4, smean.sd))
@@ -200,11 +206,13 @@ m3 <- aov(fev ~ age4, data = FEV)
 ```
 
 Le modèle `m2` fournit 3 coefficients de régression pour la variable âge à 4 modalités ; chacun de ces coefficients représente la différence de moyenne de la catégorie en question par rapport à la première catégorie (4–9 ans) :
+
 ```{r}
 summary(m2)
 ```
 
 On retrouvera facilement les différentiels de moyennes :
+
 ```{r}
 r <- with(FEV, summarize(fev, age4, smean.sd))
 r
@@ -239,6 +247,7 @@ direct.label(p + aes(label = smoke))
 ```
 
 Voici le modèle en question :
+
 ```{r}
 m1 <- lm(fev ~ smoke, data = FEV)
 m2 <- lm(fev ~ age + smoke, data = FEV)
@@ -246,17 +255,20 @@ screenreg(list(m1,m2))
 ```
 
 Comme les modèles sont emboîtés, le test du coefficient pour la variable `age` peut se retrouver par simple comparaison de modèles (par test F ou par test du rapport de vraisemblance) :
+
 ```{r}
 anova(m1, m2)
 ```
 
 Et voici le modèle incluant un terme d'interaction entre les variables `age` et `smoke` :
+
 ```{r}
 m3 <- lm(fev ~ age + smoke + age:smoke, data = FEV)
 summary(m3)
 ```
 
 Le graphique suivant résume la situation, avec des intervalles de confiance à 95 % (non simultanés !) :
+
 ```{r}
 p <- ggplot(data = FEV, aes(x = age, y = fev, color = smoke)) +
        geom_point(alpha = 0.5) +
@@ -267,17 +279,17 @@ p <- ggplot(data = FEV, aes(x = age, y = fev, color = smoke)) +
 direct.label(p + aes(label = smoke))
 ```
 
-
-Notons que l'on peut toujours utiliser la fonction `ols()` du package **rms** au lieu de la fonction `lm()` de base. Les sorties sont plus riches, il est possible d'introduire une régularisation de type "ridge" et **rms** fournit des procédure de validation et de calibration du modèle. les commandes de post-estimation (en langage Stata) sont plus intéressantes : on pourrait par exemple calculer les valeurs prédites de `fev` en fonction de `smoke` conditionnellement à un ensemble fixe et pré-spécifié de valeurs de `age`. 
+Notons que l'on peut toujours utiliser la fonction `ols()` du package **rms** au lieu de la fonction `lm()` de base. Les sorties sont plus riches, il est possible d'introduire une régularisation de type "ridge" et **rms** fournit des procédure de validation et de calibration du modèle. les commandes de post-estimation (en langage Stata) sont plus intéressantes : on pourrait par exemple calculer les valeurs prédites de `fev` en fonction de `smoke` conditionnellement à un ensemble fixe et pré-spécifié de valeurs de `age`.
 
 En dernier lieu, si l'on rajoute la variable `height` et `height`^2^, on remarquera que l'interaction `age:smoke` n'est plus significative :
+
 ```{r}
 m <- ols(fev ~ age + smoke + age:smoke + pol(height, 2), data = FEV, x = TRUE)
 m
 ```
 
 ```{r}
-d <- expand.grid(age = 9:18, smoke = levels(FEV$smoke), 
+d <- expand.grid(age = 9:18, smoke = levels(FEV$smoke),
                  height = seq(120, 180, by = 10))
 yhat <- predict(m, d, se.fit = TRUE)
 d <- cbind.data.frame(d, yhat)
@@ -285,23 +297,27 @@ head(d)
 ```
 
 Approche alternative (spécifique au package **rms**) :
+
 ```{r}
-Predict(m, age = 18, height = seq(160, 180, by = 2), 
-        smoke = "current smoker", conf.type = "simult") 
+Predict(m, age = 18, height = seq(160, 180, by = 2),
+        smoke = "current smoker", conf.type = "simult")
 ```
 
 # Analyse de covariance
 
 ## Chargement des données
+
 Les données `anorexia` portent sur une étude clinique dans laquelle on s'intéressait à l'amélioration de l'état de santé (mesurée par le gain de poids) de patientes anorexiques prises en charge par thérapie familiale (`FT`) ou thérapie comportementale (`CBT`). Un groupe contrôle est également disponible. Les données sont disponibles dans le packge **MASS**.
+
 ```{r}
 data(anorexia, package = "MASS")
 str(anorexia)
 ```
-    
+
 ## Description des variables
 
 Voici un bref résumé numérique, suivi d'une description graphique des données :
+
 ```{r}
 anorexia$Prewt <- anorexia$Prewt * 0.45    ## lbs -> kg
 anorexia$Postwt <- anorexia$Postwt * 0.45
@@ -321,7 +337,8 @@ direct.label(p + aes(label = Treat))
 
 ## Modélisation
 
-Dans un premier temps, après avoir exclus le groupe contrôle qui pourrait faire l'objet d'analyses séparées avec un ensemble de contrastes appropriés, on souhaite vérifier s'il existe ou non une interaction entre le type de thérapie et le poids de sortie, après avoir contrôlé pour le poids en entrée : 
+Dans un premier temps, après avoir exclus le groupe contrôle qui pourrait faire l'objet d'analyses séparées avec un ensemble de contrastes appropriés, on souhaite vérifier s'il existe ou non une interaction entre le type de thérapie et le poids de sortie, après avoir contrôlé pour le poids en entrée :
+
 ```{r}
 m0 <- lm(Postwt ~ Prewt + Treat, data = anorexia, subset = Treat != "Cont")
 m1 <- lm(Postwt ~ Prewt + Treat + Prewt:Treat, data = anorexia, subset = Treat != "Cont")
@@ -329,23 +346,25 @@ anova(m0, m1)
 ```
 
 En l'absence d'interaction, on pourra donc estimer le gain de poids moyen entre les deux groupes, quel que soit le poids en entrée :
+
 ```{r}
 summary(m0)
 confint(m0)
 ```
-
 
 # Exercices d'application {.tabset}
 
 Dans cette application, on travaillera avec le data frame `birthwt` qui contient des données issues d'une étude rétrospective dans lequel on s'intéresse aux facteurs de risque d'accoucher d'un bébé avec un poids inférieur à la norme (< 2.5 kg selon les normes américaines des années 80). Les variables d'intérêt sont le poids du bébé (`bwt`), l'âge (`age`) et le poids (`lwt`, en pounds) de la mère ainsi que son origine ethnique (`race`), les antécédents d'hypertension (`ht`) et le status fumeur (`smoke`).
 
 Les données sont disponibles dans le package **MASS**. Il est nécessaire de charger au préalable le package ou de le spécifier lors de l'importation :
+
 ```{r}
 data(birthwt, package = "MASS")
 summary(birthwt)
 ```
 
 Voici une vue partielle des données individuelles et agrégées :
+
 ```{r}
 birthwt$lwt <- birthwt$lwt * 0.45
 birthwt$race <- factor(birthwt$race, levels = 1:3, labels = c("white", "black", "other"))
@@ -356,7 +375,7 @@ p <- ggplot(data = birthwt, aes(x = lwt, y = bwt, color = smoke)) +
        scale_color_manual(values = c("steelblue", "orange")) +
        guides(color = FALSE) +
        facet_wrap(~ race, ncol = 3) +
-       geom_text(data = data.frame(lwt = c(45,90), bwt = c(1500,4500), 
+       geom_text(data = data.frame(lwt = c(45,90), bwt = c(1500,4500),
                                    race = "white", smoke = c("smoker", "non-smoker")),
                  aes(x = lwt, y = bwt, label = smoke), color = c("orange", "steelblue")) +
        labs(x = "Mother weight (kg)", y = "Baby weight (g)")
@@ -371,11 +390,10 @@ On considérera le modèle de base suivant : `bwt ~ lwt + race`.
 2. En utilisant une procédure de sélection automatique (`step()`), indiquer parmi l'ensemble des variables du _data frame_ lesquelles pourraient être considérées comme significatives au seuil de 5 %, sans tenir compte des problèmes inhérents à la sélection pas à pas.
 3. Comparer avec les résultats obtenus par une approche reposant sur une pénalisation de type "elasticnet" (package **elasticnet** ou **glmnet**).
 
-
 ## Tests spécifiques
 
 1. Considérons le modèle `bwt ~ lwt + race + smoke`. Estimer les paramètres du modèle avec leurs intervalles de confiance à 95 %.
-2. On souhiate comparer le groupe `white` aux deux groupes réunis `black+other` tout en ajustant sur les deux autres variables du modèle. Proposer une approche reposant sur l'utilisation de contrastes (package **multcomp** ou **rms**). 
+2. On souhiate comparer le groupe `white` aux deux groupes réunis `black+other` tout en ajustant sur les deux autres variables du modèle. Proposer une approche reposant sur l'utilisation de contrastes (package **multcomp** ou **rms**).
 3. Existe t-il une différence signifciative entre les mères qui fument dans la catégorie `white` et celles qui fument dans la catégorie `black` ?
 
 ## Estimation par bootstrap

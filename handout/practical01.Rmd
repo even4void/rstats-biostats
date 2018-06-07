@@ -4,6 +4,7 @@ subtitle: "ANOVA et comparaisons multiples"
 ---
 
 Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **Hmisc** et **multcomp** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "Hmisc", "multcomp"))`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
+
 ```{r, message = FALSE}
 library(ggplot2)
 library(hrbrthemes)
@@ -14,29 +15,35 @@ options(digits = 6, show.signif.stars = FALSE)
 theme_set(theme_ipsum(base_size = 11))
 ```
 
-
 # Rappels sur l'ANOVA à un facteur
 
 ## Chargement des données
+
 On utilise les données sur le polymorphisme du gène du récepteur estrogène. Le chargement des données au format Stata nécessite le package **foreign** et peut être réalisé comme suit :
+
 ```{r}
 d <- foreign::read.dta("data/polymorphism.dta")
 str(d)
 ```
 
 ## Description des variables
+
 Pour résumer la structure de données assez simple, on peut calculer l'âge moyen selon les groupes et représenter graphiquement les distributions conditionnelles de l'âge.
+
 ```{r, eval = FALSE}
 aggregate(age ~ genotype, data = d, mean)
 ```
+
 Avec le package **Hmisc**, on peut calculer des résultats plus détaillés et plus facilement exploitables. On utilise la même fonction, `summary()`, que dans le cas du résumé d'un data frame ou d'une variable, et les mêmes arguments que dans le cas de `aggregate()`.
+
 ```{r}
 summary(age ~ genotype, data = d, fun = smean.sd)
 ```
 
 Pour représenter les distributions conditionnelles, on peut utiliser des histogrammes d'effectif, des courbes de densité ou des boîtes à moustaches. Voici une solution avec des histogrammes à l'aide de **ggplot2** :
+
 ```{r}
-p <- ggplot(data = d, aes(x = age)) + 
+p <- ggplot(data = d, aes(x = age)) +
        geom_histogram(binwidth = 5, fill = "steelblue", color = "steelblue4") +
        facet_wrap(~ genotype, ncol = 3) +
        labs(x = "Age at diagnosis", y = "Count")
@@ -44,16 +51,19 @@ p
 ```
 
 ## Modélisation
+
 La commande `aov()` permet de décomposer la variance totale entre les différentes sources de variations (nécessairement de type `factor()`) indiquées dans le modèle et le terme d'érreur ("résiduelle"). On l'utilise généralement en combinaison avec `summary()` pour produire le tableau d'ANOVA :
+
 ```{r}
 m <- aov(age ~ genotype, data = d)
 summary(m)
 ```
 
 Une représentation graphique sous forme de moyennes conditionnelles s'obtient assez facilement avec **ggplot2**. Le calcul des moyennes et des intervalles de confiance à 95 % est réalisé avec **Hmisc** (attention, `Hmisc::summarize()` n'accepte pas de notation par formule, contrairement à la fonction `summary()` du même package, qui s'appelle en fait `summary.formula()`):
+
 ```{r}
 r <- with(d, summarize(age, genotype, smean.cl.normal))
-p <- ggplot(data = r, aes(x = genotype, y = age)) + 
+p <- ggplot(data = r, aes(x = genotype, y = age)) +
        geom_errorbar(aes(ymin = Lower, ymax = Upper), width=.1) +
        geom_point() +
        geom_jitter(data = d, width = .05, color = grey(.7), alpha = .5) +
@@ -61,41 +71,47 @@ p <- ggplot(data = r, aes(x = genotype, y = age)) +
 p
 ```
 
-
 On peut comparer l'ensemble des paires de moyennes à l'aide de simples tests de Student non protégés :
+
 ```{r}
 with(d, pairwise.t.test(age, genotype, p.adj = "none"))
 ```
 
 Notons que l'option par défaut retenue pour `pairwise.t.test()` est de travailler avec la variance commune de l'ensemble des groupes, comme dans l'ANOVA. Pour retrouver les mêmes résultats avec la commande `t.test()`, il faudra désactiver cette option :
+
 ```{r}
 with(d, pairwise.t.test(age, genotype, p.adj = "none", pool.sd = FALSE))
 t.test(age ~ genotype, data = d, subset = genotype != "0.7/0.7", var.equal = TRUE)
 ```
 
 Les mêmes résultats peuvent se retrouver à partir du modèle linéaire directement. Encore une fois, il faut s'assurer que les variables catégorielles sont bien représentées comme des facteurs sous R :
+
 ```{r}
 m <- lm(age ~ genotype, data = d)
 summary(m)
 ```
 
 Le test d'ensemble pour le modèle indiqué au bas des résultats précédents correspond au test de Fisher-Snedecor de l'ANOVA. On peut également le retrouver en affichant le tableau d'ANOVA du modèle de régression à l'aide de `anova()` :
+
 ```{r}
 anova(m)
 ```
 
-
 # Modèle d'ANOVA à deux facteurs
 
 ## Chargement des données
+
 On utilise les données sur le gain de poids chez des rats soumis à différents régimes alimentaires. Le chargement des données est réalisé ci-dessous :
+
 ```{r}
 load("data/weight.rda")
 str(weight)
 ```
 
 ## Description des variables
+
 Les variables peuvent être décrites par colonnes mais il est préférable de réarranger le tableau sous forme de data frame, afin d'avoir une seule variable statistique par colonne :
+
 ```{r}
 d <- data.frame(weight = as.numeric(unlist(weight)),
                 type   = gl(2, 20, labels = c("Beef", "Cereal")),
@@ -103,9 +119,10 @@ d <- data.frame(weight = as.numeric(unlist(weight)),
 head(d)
 ```
 
-Voici un résumé graphique possible des données individuelles avec le package **ggplot2** : 
+Voici un résumé graphique possible des données individuelles avec le package **ggplot2** :
+
 ```{r}
-p <- ggplot(data = d, aes(x = level, y = weight)) + 
+p <- ggplot(data = d, aes(x = level, y = weight)) +
        geom_boxplot(position = position_dodge()) +
        geom_jitter(size = .8, width = .05) +
        facet_wrap(~ type, nrow = 2) +
@@ -113,8 +130,10 @@ p <- ggplot(data = d, aes(x = level, y = weight)) +
 p
 ```
 
-## Diagramme d'interaction 
+## Diagramme d'interaction
+
 Pour visualiser l'interaction entre les deux variables, on peut utiliser un simple tracé de moyennes conditionnelles :
+
 ```{r}
 p <- ggplot(data = d, aes(x = level, y = weight, color = type)) +
        stat_summary(fun.y = mean, geom = "line", aes(group = type), size = 1) +
@@ -124,31 +143,37 @@ p
 ```
 
 Une autre manière de procéder consisterait à travailler avec le data frame de données agrégées, `r`, et utiliser `geom_line()` au lieu de `stat_summary()`, toujours en veillant à ajouter une esthétique de groupement. La fonction `geom_errorbar()` permet de rajouter aisément des barres d'erreur (écart-type, erreur-type ou intervalles de confiance -- à calculer séparément), comme on l'a vu plus haut. Les statistiques nécessaires peuvent être calculées avec les packages **plyr**, **dplyr** ou **Hmisc** comme proposé plus haut. Voici un exemple avec des intervalles de confiance à 95 % :
+
 ```{r}
 with(d, summarize(weight, llist(type, level), smean.cl.normal))
 ```
+
 Le package **Hmisc** propose aussi des fonctions graphiques pour représenter, entre autres, les effets d'interaction.
 
 ## Modélisation
 
 Le modèle d'ANOVA à deux facteurs avec interaction s'écrit :
+
 ```{r}
 m1 <- aov(weight ~ type * level, data = d)
 summary(m1)
 ```
 
 Le terme d'interaction n'étant pas significatif, il est possible de proposer un modèle plus simple :
+
 ```{r}
 m0 <- aov(weight ~ type + level, data = d)
 summary(m0)
 ```
 
 On retrouvera le test de l'interaction en comparant ces deux modèles emboîtés, `m0` et `m1`, à l'aide de `anova()` (dans le cas gaussien, ce sont des statistiques F qui sont calculées) :
+
 ```{r}
 anova(m0, m1)
 ```
 
 Puisque la variable `level` possède deux niveaux, il est également possible de retrouver les résultats du tableau d'ANOVA à l'aide de test de Student puisque l'effet de ce facteur est supposé être indépendant de l'autre terme inclus dans le modèle :
+
 ```{r}
 r <- t.test(weight ~ level, data = d, var.equal = TRUE)
 r
@@ -157,14 +182,16 @@ r$statistic^2
 
 ## Comparaisons multiples
 
-La fonction `pairwise.t.test()` est limitée au cas à un facteur. On peut néanmoins reconstruire le terme d'interaction à l'aide de `interaction()`, ce qui nous fournira un facteur codant les groupes issus du croisement de l'ensemble des niveaux des deux facteurs, encore appelé traitements. Cette technqiue permet également de réaliser un test d'égalité des variances ou de visualiser la distribution entre traitements pour vérifier les conditions de validité du modèle. 
+La fonction `pairwise.t.test()` est limitée au cas à un facteur. On peut néanmoins reconstruire le terme d'interaction à l'aide de `interaction()`, ce qui nous fournira un facteur codant les groupes issus du croisement de l'ensemble des niveaux des deux facteurs, encore appelé traitements. Cette technqiue permet également de réaliser un test d'égalité des variances ou de visualiser la distribution entre traitements pour vérifier les conditions de validité du modèle.
 
 Voici un exemple de tests de Student avec correction de Bonferroni :
+
 ```{r}
 with(d, pairwise.t.test(weight, interaction(type, level), p.adj = "bonf"))
 ```
 
 Et voici pour la distribution du poids des rats entre traitements :
+
 ```{r}
 p <- ggplot(data = d, aes(x = interaction(type, level, sep = "/"), y = weight)) +
        geom_boxplot() +
@@ -173,6 +200,7 @@ p
 ```
 
 L'alternative consiste à utiliser des tests post-hoc de type Tukey HSD à l'aide de `TukeyHSD()`, ou de l'alternative disponible _via_ la fonction `multcomp::glht()`. Voici une illustration avec le package **multcomp**, plus flexible et plus générale que la fonction de base de R. À noter qu'il est également nécessaire de travailler avec le terme d'interaction et d'utiliser `lm()` au lieu de `aov()` :
+
 ```{r}
 d$tx <- with(d, interaction(type, level))
 m <- lm(weight ~ tx, data = d)
@@ -182,18 +210,19 @@ summary(r)
 
 Ces résultats vont dans le même sens que ce que suggère le résultat non significatif pour le test de l'interaction (cf. les deux comparaisons extrêmes `Cereal.Low - Beef.Low` et `Cereal.High - Beef.High`).
 
-
 # Exercices d'application {.tabset}
 
 Dans cette application, on travaillera avec le data frame `ToothGrowth` qui contient des données issues d'un plan d'expérience dans lequel on s'intéresse à la croissance des odontoblastes de cochons d'inde auxquels on administre de la vitamine C sous forme d'acide ascorbique ou de jus d'orange à différentes doses (0.5, 1 et 2 mg/jour).
 
 Les données sont disponibles dans le package **datasets**. Il n'est pas forcément nécessaire de les charger dans l'espace de travail mais par souci de clarté on indique la commande requise :
+
 ```{r}
 data(ToothGrowth)
 summary(ToothGrowth)
 ```
 
 Voici une vue d'ensemble des données individuelles et agrégées :
+
 ```{r}
 r <- aggregate(len ~ dose + supp, data = ToothGrowth, mean)
 p <- ggplot(data = ToothGrowth, aes(x = dose, y = len, color = supp)) +
@@ -211,8 +240,7 @@ p
 Attention au codage de de la variable `dose`.
 
 1. Réaliser une ANOVA à deux facteurs pour répondre aux questions suivantes : (a) existe t-il un effet du mode d'administration de la vitamine C (`supp`) sur la longueur des odontoblastes, et (b) cet effet est-il dépendant du dosage journalier ?
-2. L'effet dose est-il linéaire ? Vérifier la linéarité de la relation `len ~ dose` en utilisant (a) une approche de régression et (b) une approche par ANOVA avec des contrastes polynomiaux. 
-
+2. L'effet dose est-il linéaire ? Vérifier la linéarité de la relation `len ~ dose` en utilisant (a) une approche de régression et (b) une approche par ANOVA avec des contrastes polynomiaux.
 
 ## Comparaisons post-hoc
 
@@ -228,8 +256,6 @@ On souhaite comparer des groupes spécifiques d'observations.
 1. On s'intéresse à la comparaison des données moyennes dans le groupe `OJ` pour les doses 0.5 et 1 mg réunies avec les données moyennes dans le groupe `VC` pour les mêmes doses. Réaliser le test correspondant.
 2. On s'intéresse à la comparaison des données moyennes dans le groupe `OJ` pour les doses 0.5 et 1 mg réunies avec les données moyennes dans le groupe `OJ` pour la dose 2 mg. Réaliser le test correspondant.
 3. On s'intéresse à la comparaison des données moyennes dans le groupe `OJ` pour les doses 0.5 et 1 mg réunies avec les données moyennes dans le groupe `VC` pour les doses 1 et 2 mg. Réaliser le test correspondant.
-
-
 
 ## Type de sommes de carré
 
