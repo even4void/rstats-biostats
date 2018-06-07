@@ -6,3 +6,12 @@ h2 { font-size: 1.2em }
 
 code { font-family: Inconsolata, Monaco, Consolas, "Lucida Console", monospace }
 pre.r { font-size: 1em }
+
+.outline {
+    margin-left: 30px;
+    margin-right: 30px;
+    background-color: #f8f5ec;
+    padding: 10px;
+    -webkit-border-radius: 4px solid rgb(55,123,181);
+    border-radius: 4px solid rgb(55,123,181);
+}

@@ -216,7 +216,10 @@ p
 
 ## Chargement des données
 
-> Le modèle de régression de Cox est un modèle semi-paramétrique simple dans lequel on modélise la fréquence instantanée de l'événement d'intérêt, appelé "hazard", en fonction de variables explicatives sous la forme $ \log[h(t;x_1,x_2,\dots)] = \log[h_0(t)] + \beta_1x_1 + \beta_2x2 + \dots $.
+<div class="outline">
+Le modèle de régression de Cox est un modèle semi-paramétrique simple dans lequel on modélise la fréquence instantanée de l'événement d'intérêt, appelé "hazard", en fonction de variables explicatives sous la forme : 
+$$ \log\big(h(t;x_1,x_2,\dots)\big) = \log\big(h_0(t)\big) + \beta_1x_1 + \beta_2x_2 + \dots $$
+</div>
 
 Le package **survival** permet de traiter le cas de ce type de données, appelées données de survie, pour lesquelles sont associées une variable codant une durée ou une date chronologique et une variable codant un événement binaire (0 = l'événement n'a pas été observé à la dernière date d'observation, 1 = l'événement a été observé ; ici, l'événement est le décès). Voici comment procéder sour R pour définir cette variable composite :
 
@@ -231,15 +234,17 @@ head(st)
 
 ## Description des variables
 
-
+Toutes les commandes R doivent utiliser la variable composite définie par `Surv()`, raison pour laquelle il est plus commode de la stocker une fois pour toutes dans une variable, ici `st`. La médiane de survie et son intervalle de confiance pour l'ensemble des individus s'obtient de la manière suivante :
 ```{r}
 s <- survfit(st ~ 1, data=lung)
+s
 ```
 
+Pour obtenir la médiane de survie dans deux groupes, on remplacera le terme d'intercept (`~ 1`) par le facteur correspondant. En réalité, `survfit()` permet de construire la table de mortalité, que l'on peut afficher entièrement ou partiellement en appliquant la méthode `summary()` :
 ```{r}
 summary(s, times=seq(1, 200, by=20))
 ```
-
+Enfin, on peut résumer graphiquement cette table de mortalité à l'aide d'une courbe de Kaplan-Meier (KM) :
 ```{r}
 s <- survfit(st ~ sex, data=lung)
 p <- autoplot(s, censor = TRUE, censor.colour = grey(.5)) +
@@ -254,16 +259,18 @@ p
 
 ## Modélisation
 
+Le test du log-rank permettant de tester l'égalité de deux courbes de KM s'obtient avec la commande `survdiff()` :
 ```{r}
 survdiff(st ~ sex, data=lung)
 ```
 
-
+Quant au modèle de Cox, la syntaxe est la même que dans le cas des autres modèles, à ceci près que la variable réponse est la variable composite définie plus haut, `st` : 
 ```{r}
 m <- coxph(st ~ sex, data=lung)
 m
 ```
 
+Il est possible de traiter un cofacteur comme une variable de stratification, de sorte que ses paramètres sont estimés mais ne contribuent pas au degré de liberté du modèle :
 ```{r}
 coxph(st ~ sex + strata(age), data=lung)
 ```
