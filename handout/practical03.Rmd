@@ -7,8 +7,10 @@ Les paramètres suivants doivent être définis dans R ou RStudio afin de reprod
 ```{r, message = FALSE}
 library(hrbrthemes)
 library(directlabels)
+library(ggfortify)
 library(cowplot)
 library(texreg)
+library(survival)
 library(rms)            ## Hmisc, ggplot2
 options(digits = 6, show.signif.stars = FALSE)
 theme_set(theme_ipsum(base_size = 11))
@@ -214,15 +216,57 @@ p
 
 ## Chargement des données
 
-La régression de
+> Le modèle de régression de Cox est un modèle semi-paramétrique simple dans lequel on modélise la fréquence instantanée de l'événement d'intérêt, appelé "hazard", en fonction de variables explicatives sous la forme $ \log[h(t;x_1,x_2,\dots)] = \log[h_0(t)] + \beta_1x_1 + \beta_2x2 + \dots $.
 
 Le package **survival** permet de traiter le cas de ce type de données, appelées données de survie, pour lesquelles sont associées une variable codant une durée ou une date chronologique et une variable codant un événement binaire (0 = l'événement n'a pas été observé à la dernière date d'observation, 1 = l'événement a été observé ; ici, l'événement est le décès). Voici comment procéder sour R pour définir cette variable composite :
 
 
+```{r}
+data(lung, package = "survival")
+lung$sex <- factor(lung$sex, levels = 1:2, labels = c("Male", "Female"))
+st <- with(lung, Surv(time=time, event=status))
+head(st)
+```
+
+
 ## Description des variables
+
+
+```{r}
+s <- survfit(st ~ 1, data=lung)
+```
+
+```{r}
+summary(s, times=seq(1, 200, by=20))
+```
+
+```{r}
+s <- survfit(st ~ sex, data=lung)
+p <- autoplot(s, censor = TRUE, censor.colour = grey(.5)) +
+       scale_color_manual("", values = c("steelblue", "orange")) + 
+       scale_fill_manual("", values = c("steelblue", "orange")) +
+       guides(fill = FALSE) +
+       theme(legend.position = c(.9, .9)) +
+       labs(x = "Followup time (hr.)", y = "Probability survival")
+p
+```
+
 
 ## Modélisation
 
+```{r}
+survdiff(st ~ sex, data=lung)
+```
+
+
+```{r}
+m <- coxph(st ~ sex, data=lung)
+m
+```
+
+```{r}
+coxph(st ~ sex + strata(age), data=lung)
+```
 
 # Exercices d'application {.tabset}
 
