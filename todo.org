@@ -3,6 +3,7 @@
 *** DONE Update CSS theme (inline + global?)
 *** TODO Check dataset description file
 *** DONE Add details and links in README
+*** TODO Fix Makefile rules (tangle + PDF)
 
 * Checklist [11/17]
 
