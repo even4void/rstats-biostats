@@ -1,8 +1,11 @@
 html_document:
-  theme: default
+  theme: flatly
   css: elements.css
   number_sections: false
   toc: true
   toc_float: true
   code_folding: show
-  highlight: null
+  highlight: pygments
+  lang: fr
+  includes:
+    after_body: footer.html

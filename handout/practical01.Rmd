@@ -3,7 +3,7 @@ title: "Méthodes biostatistiques"
 subtitle: "ANOVA et comparaisons multiples"
 ---
 
-Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **Hmisc** et **multcomp** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "Hmisc", "multcomp"))`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
+Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages `ggplot2`{.pkg}, `hrbrthemes`{.pkg}, `directlabels`{.pkg}, `Hmisc`{.pkg} et `multcomp`{.pkg} ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "Hmisc", "multcomp"))`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
 
 ```{r, message = FALSE}
 library(ggplot2)
@@ -17,9 +17,15 @@ theme_set(theme_ipsum(base_size = 11))
 
 # Rappels sur l'ANOVA à un facteur
 
+<div class="outline">
+Soit $y_{ij}$ la $j$ème observation dans le groupe $i$. Le modèle d'ANOVA ou "effect model" s'écrit $$ y_{ij}=\mu+\alpha_i+\varepsilon_{ij}, $$ où $\mu$ désigne la moyenne générale, $\alpha_i$ l'effet du groupe $i$, et $\varepsilon_{ij}\sim \mathcal{N}(0,\sigma^2)$ un terme d'erreur aléatoire. On impose généralement que $\sum_{i=1}^k\alpha_i=0$.
+
+L'hypothèse nulle se lit $H_0:\alpha_1=\alpha_2=\dots=\alpha_k$. Sous cette hypothèse d'égalité des moyennes de groupe, la variance entre groupe ("between") et la variance propre à chaque groupe ("within") permettent d'estimer $\sigma^2$. D'où le test F d'égalité de ces deux variances. Sous $H_0$, le rapport entre les carrés moyens inter et intra-groupe (qui estiment les variances ci-dessus) suit une loi F de Fisher-Snedecor à $k-1$ et $N-k$ degrés de liberté.
+</div>
+
 ## Chargement des données
 
-On utilise les données sur le polymorphisme du gène du récepteur estrogène. Le chargement des données au format Stata nécessite le package **foreign** et peut être réalisé comme suit :
+On utilise les données sur le polymorphisme du gène du récepteur estrogène, [`polymorphism.dta`](data/polymorphism.dta). Le chargement des données au format Stata nécessite le package `foreign`{.pkg} et peut être réalisé comme suit :
 
 ```{r}
 d <- foreign::read.dta("data/polymorphism.dta")
@@ -28,19 +34,13 @@ str(d)
 
 ## Description des variables
 
-Pour résumer la structure de données assez simple, on peut calculer l'âge moyen selon les groupes et représenter graphiquement les distributions conditionnelles de l'âge.
-
-```{r, eval = FALSE}
-aggregate(age ~ genotype, data = d, mean)
-```
-
-Avec le package **Hmisc**, on peut calculer des résultats plus détaillés et plus facilement exploitables. On utilise la même fonction, `summary()`, que dans le cas du résumé d'un data frame ou d'une variable, et les mêmes arguments que dans le cas de `aggregate()`.
+Pour résumer la structure de données assez simple, on peut calculer l'âge moyen selon les groupes à l'aide de `aggregate`{pkg="stats"} et représenter graphiquement les distributions conditionnelles de l'âge. Cela dit, le package `Hmisc`{.pkg} permet de calculer des résultats plus détaillés et plus facilement exploitables. On utilise la fonction, `summary.formula`{pkg="Hmisc"}, que l'on peut abréger à `summary` comme dans le cas du résumé d'un data frame ou d'une variable, et les mêmes arguments que dans le cas de `aggregate`{pkg="stats"}.
 
 ```{r}
 summary(age ~ genotype, data = d, fun = smean.sd)
 ```
 
-Pour représenter les distributions conditionnelles, on peut utiliser des histogrammes d'effectif, des courbes de densité ou des boîtes à moustaches. Voici une solution avec des histogrammes à l'aide de **ggplot2** :
+Pour représenter les distributions conditionnelles, il est possible d'utiliser des histogrammes d'effectif, des courbes de densité ou des boîtes à moustaches. Voici une solution avec des histogrammes à l'aide de `ggplot2`{.pkg} :
 
 ```{r}
 p <- ggplot(data = d, aes(x = age)) +
@@ -52,14 +52,14 @@ p
 
 ## Modélisation
 
-La commande `aov()` permet de décomposer la variance totale entre les différentes sources de variations (nécessairement de type `factor()`) indiquées dans le modèle et le terme d'érreur ("résiduelle"). On l'utilise généralement en combinaison avec `summary()` pour produire le tableau d'ANOVA :
+La commande `aov`{pkg="stats"} permet de décomposer la variance totale entre les différentes sources de variations (nécessairement de type `factor`{pkg="base"}) indiquées dans le modèle et le terme d'erreur ou "résiduelle". On l'utilise généralement en combinaison avec `summary.aov`{pkg="stats"} pour produire le tableau d'ANOVA :
 
 ```{r}
 m <- aov(age ~ genotype, data = d)
 summary(m)
 ```
 
-Une représentation graphique sous forme de moyennes conditionnelles s'obtient assez facilement avec **ggplot2**. Le calcul des moyennes et des intervalles de confiance à 95 % est réalisé avec **Hmisc** (attention, `Hmisc::summarize()` n'accepte pas de notation par formule, contrairement à la fonction `summary()` du même package, qui s'appelle en fait `summary.formula()`):
+Une représentation graphique sous forme de moyennes conditionnelles s'obtient assez facilement avec `ggplot2`{.pkg}. Le calcul des moyennes et des intervalles de confiance à 95 % est réalisé avec `Hmisc`{.pkg} (attention, `summarize`{pkg="Hmisc"} n'accepte pas de notation par formule, contrairement à la fonction `summary.formula`{pkg="Hmisc"} du même package) :
 
 ```{r}
 r <- with(d, summarize(age, genotype, smean.cl.normal))
@@ -77,7 +77,7 @@ On peut comparer l'ensemble des paires de moyennes à l'aide de simples tests de
 with(d, pairwise.t.test(age, genotype, p.adj = "none"))
 ```
 
-Notons que l'option par défaut retenue pour `pairwise.t.test()` est de travailler avec la variance commune de l'ensemble des groupes, comme dans l'ANOVA. Pour retrouver les mêmes résultats avec la commande `t.test()`, il faudra désactiver cette option :
+Notons que l'option par défaut retenue pour `pairwise.t.test`{pkg="stats"} est de travailler avec la variance commune de l'ensemble des groupes, comme dans l'ANOVA. Pour retrouver les mêmes résultats avec la commande `t.test`{pkg="stats"}, il faudra désactiver cette option :
 
 ```{r}
 with(d, pairwise.t.test(age, genotype, p.adj = "none", pool.sd = FALSE))
@@ -91,7 +91,7 @@ m <- lm(age ~ genotype, data = d)
 summary(m)
 ```
 
-Le test d'ensemble pour le modèle indiqué au bas des résultats précédents correspond au test de Fisher-Snedecor de l'ANOVA. On peut également le retrouver en affichant le tableau d'ANOVA du modèle de régression à l'aide de `anova()` :
+Le test d'ensemble pour le modèle indiqué au bas des résultats précédents correspond au test de Fisher-Snedecor de l'ANOVA. On peut également le retrouver en affichant le tableau d'ANOVA du modèle de régression à l'aide de `anova`{pkg="stats"} :
 
 ```{r}
 anova(m)
@@ -99,9 +99,20 @@ anova(m)
 
 # Modèle d'ANOVA à deux facteurs
 
+<div class="outline">
+Soit $y_{ijk}$ la $k$ème observation pour le niveau $i$ du facteur $A$ ($i=1,\dots,a$) et le niveau $j$ du facteur $B$ ($j=1,\dots,b$). Le modèle complet avec interaction s'écrit $$ y_{ijk} = \mu + \alpha_i + \beta_j + \gamma_{ij} + \varepsilon_{ijk},$$ où $\mu$ désigne la moyenne générale, $\alpha_i$ ($\beta_j$) l'écart à la moyenne des moyennes de groupe pour le facteur $A$ ($B$), $\gamma_{ij}$ les écarts à la moyenne des moyennes pour les traitements $A\times B$, et $\varepsilon_{ijk}\sim \mathcal{N}(0,\sigma^2)$ la résiduelle. Les effets $\alpha_i$ et $\beta_j$ sont appelés effets principaux, tandis que $\gamma_{ij}$ est l'effet d'interaction. Les hypothèses nulles associées sont
+$$ \left\{\begin{array}{lr}
+   H_0^A:\alpha_1=\alpha_2=\dots=\alpha_a, & (a-1)\,\text{dl}\\
+   H_0^B:\beta_1=\beta_2=\dots=\beta_b, & (b-1)\,\text{dl}\\
+   H_0^{AB}:\gamma_{11}=\gamma_{13}=\dots=\gamma_{ab}, &(a-1)(b-1)\,\text{dl}\\
+   \end{array}\right. $$
+
+Des tests F (CM effets / CM résiduelle) permettent de tester ces hypothèses. À noter : des sommes de carré de type I sont estimées pour $A$, puis $B$, et enfin $A\times B$, à la différence des SC de type II/III, mais elles sont égales dans le cas d'un plan complet équilibré.
+</div>
+
 ## Chargement des données
 
-On utilise les données sur le gain de poids chez des rats soumis à différents régimes alimentaires. Le chargement des données est réalisé ci-dessous :
+On utilise les données sur le gain de poids chez des rats soumis à différents régimes alimentaires, [`weight.rda`](data/weight.rda). Le chargement des données est réalisé ci-dessous :
 
 ```{r}
 load("data/weight.rda")
@@ -119,7 +130,7 @@ d <- data.frame(weight = as.numeric(unlist(weight)),
 head(d)
 ```
 
-Voici un résumé graphique possible des données individuelles avec le package **ggplot2** :
+Voici un résumé graphique possible des données individuelles avec le package `ggplot2`{.pkg} :
 
 ```{r}
 p <- ggplot(data = d, aes(x = level, y = weight)) +
@@ -142,13 +153,13 @@ p <- ggplot(data = d, aes(x = level, y = weight, color = type)) +
 p
 ```
 
-Une autre manière de procéder consisterait à travailler avec le data frame de données agrégées, `r`, et utiliser `geom_line()` au lieu de `stat_summary()`, toujours en veillant à ajouter une esthétique de groupement. La fonction `geom_errorbar()` permet de rajouter aisément des barres d'erreur (écart-type, erreur-type ou intervalles de confiance -- à calculer séparément), comme on l'a vu plus haut. Les statistiques nécessaires peuvent être calculées avec les packages **plyr**, **dplyr** ou **Hmisc** comme proposé plus haut. Voici un exemple avec des intervalles de confiance à 95 % :
+Une autre manière de procéder consisterait à travailler avec le data frame de données agrégées, `r`, et utiliser `geom_line`{pkg="ggplot2"} au lieu de `stat_summary`{pkg="ggplot2"}, toujours en veillant à ajouter une esthétique de groupement. La fonction `geom_errorbar`{pkg="ggplot2"} permet de rajouter aisément des barres d'erreur (écart-type, erreur-type ou intervalles de confiance -- à calculer séparément), comme on l'a vu plus haut. Les statistiques nécessaires peuvent être calculées avec les packages `plyr`{.pkg}, `dplyr`{.pkg} ou `Hmisc`{.pkg} comme proposé plus haut. Voici un exemple avec des intervalles de confiance à 95 % :
 
 ```{r}
 with(d, summarize(weight, llist(type, level), smean.cl.normal))
 ```
 
-Le package **Hmisc** propose aussi des fonctions graphiques pour représenter, entre autres, les effets d'interaction.
+Le package `Hmisc`{.pkg} propose aussi des fonctions graphiques pour représenter, entre autres, les effets d'interaction.
 
 ## Modélisation
 
@@ -166,7 +177,7 @@ m0 <- aov(weight ~ type + level, data = d)
 summary(m0)
 ```
 
-On retrouvera le test de l'interaction en comparant ces deux modèles emboîtés, `m0` et `m1`, à l'aide de `anova()` (dans le cas gaussien, ce sont des statistiques F qui sont calculées) :
+On retrouvera le test de l'interaction en comparant ces deux modèles emboîtés, `m0` et `m1`, à l'aide de `anova`{pkg="stats"} (dans le cas gaussien, ce sont des statistiques F qui sont calculées) :
 
 ```{r}
 anova(m0, m1)
@@ -182,7 +193,7 @@ r$statistic^2
 
 ## Comparaisons multiples
 
-La fonction `pairwise.t.test()` est limitée au cas à un facteur. On peut néanmoins reconstruire le terme d'interaction à l'aide de `interaction()`, ce qui nous fournira un facteur codant les groupes issus du croisement de l'ensemble des niveaux des deux facteurs, encore appelé traitements. Cette technqiue permet également de réaliser un test d'égalité des variances ou de visualiser la distribution entre traitements pour vérifier les conditions de validité du modèle.
+La fonction `pairwise.t.test`{pkg="stats"} est limitée au cas à un facteur. On peut néanmoins reconstruire le terme d'interaction à l'aide de `interaction`{pkg="base"}, ce qui nous fournira un facteur codant les groupes issus du croisement de l'ensemble des niveaux des deux facteurs, encore appelé traitements. Cette technqiue permet également de réaliser un test d'égalité des variances ou de visualiser la distribution entre traitements pour vérifier les conditions de validité du modèle.
 
 Voici un exemple de tests de Student avec correction de Bonferroni :
 
@@ -199,7 +210,7 @@ p <- ggplot(data = d, aes(x = interaction(type, level, sep = "/"), y = weight)) 
 p
 ```
 
-L'alternative consiste à utiliser des tests post-hoc de type Tukey HSD à l'aide de `TukeyHSD()`, ou de l'alternative disponible _via_ la fonction `multcomp::glht()`. Voici une illustration avec le package **multcomp**, plus flexible et plus générale que la fonction de base de R. À noter qu'il est également nécessaire de travailler avec le terme d'interaction et d'utiliser `lm()` au lieu de `aov()` :
+L'alternative consiste à utiliser des tests post-hoc de type Tukey HSD à l'aide de `TukeyHSD`{pkg="stats"}, ou de l'alternative disponible _via_ la fonction `multcomp::glht()`. Voici une illustration avec le package `multcomp`{.pkg}, plus flexible et plus générale que la fonction de base de R. À noter qu'il est également nécessaire de travailler avec le terme d'interaction et d'utiliser `lm`{pkg="stats"} au lieu de `aov`{pkg="stats"} :
 
 ```{r}
 d$tx <- with(d, interaction(type, level))
@@ -212,9 +223,9 @@ Ces résultats vont dans le même sens que ce que suggère le résultat non sign
 
 # Exercices d'application {.tabset}
 
-Dans cette application, on travaillera avec le data frame `ToothGrowth` qui contient des données issues d'un plan d'expérience dans lequel on s'intéresse à la croissance des odontoblastes de cochons d'inde auxquels on administre de la vitamine C sous forme d'acide ascorbique ou de jus d'orange à différentes doses (0.5, 1 et 2 mg/jour).
+Dans cette application, on travaillera avec le data frame `ToothGrowth`{pkg="datasets"} qui contient des données issues d'un plan d'expérience dans lequel on s'intéresse à la croissance des odontoblastes de cochons d'inde auxquels on administre de la vitamine C sous forme d'acide ascorbique ou de jus d'orange à différentes doses (0.5, 1 et 2 mg/jour).
 
-Les données sont disponibles dans le package **datasets**. Il n'est pas forcément nécessaire de les charger dans l'espace de travail mais par souci de clarté on indique la commande requise :
+Les données sont disponibles dans le package `datasets`{.pkg}. Il n'est pas forcément nécessaire de les charger dans l'espace de travail mais par souci de clarté on indique la commande requise :
 
 ```{r}
 data(ToothGrowth)
@@ -259,7 +270,7 @@ On souhaite comparer des groupes spécifiques d'observations.
 
 ## Type de sommes de carré
 
-R utilise des sommes de carré de type I, encore appelées séquentielles. Dans le cas où les effectifs sont balancés entre les traitements, on obtiendra les mêmes résultats quelle que soit l'approche utilisée. En cas de désquilibre d'effectifs, en revanche, ce n'est plus le cas et certains auteurs recommendent d'utiliser des sommes de carré de type III, voire de type II. Comparer les résultats obtenus en utilisant ces trois types de sommes de carré, obtenus à l'aide des fonctions `drop1()` et `car::Anova()` pour le modèle à deux facteurs sur les données `ToothGrowth`. Le déséquilibre d'effectifs pourra être imposé par une suppression aléatoire de 10 % des observations.
+R utilise des sommes de carré de type I, encore appelées séquentielles. Dans le cas où les effectifs sont balancés entre les traitements, on obtiendra les mêmes résultats quelle que soit l'approche utilisée. En cas de désquilibre d'effectifs, en revanche, ce n'est plus le cas et certains auteurs recommendent d'utiliser des sommes de carré de type III, voire de type II. Comparer les résultats obtenus en utilisant ces trois types de sommes de carré, obtenus à l'aide des fonctions `add11`{pkg="stats"} ou `drop1` et `Anova`{pkg="car"} du package `car`{.pkg} pour le modèle à deux facteurs sur les données `ToothGrowth`{pkg="datasets"}. Le déséquilibre d'effectifs pourra être imposé par une suppression aléatoire de 10 % des observations.
 
 ```{r}
 set.seed(101)

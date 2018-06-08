@@ -3,14 +3,19 @@ h2 { color: black; }
 
 h1.title {
   font-size: 2em;
-  color: rgb(55, 123, 181);
+  color: rgb(45, 62, 79);
 }
 
-h3.subtitle { color: rgb(55, 123, 181); }
+h3.subtitle { color: rgb(45, 62, 79); }
 h1 { font-size: 1.5em; }
 h2 { font-size: 1.2em; }
 
-code { font-family: Inconsolata, Monaco, Consolas, "Lucida Console", monospace; }
+code {
+  font-family: Inconsolata, Monaco, Consolas, "Lucida Console", monospace;
+  color: rgb(45, 62, 79);
+  font-size: 1.02em;
+}
+
 pre.r { font-size: 1em; }
 
 /* FIXME why isn't the border-color attribute honored in the Bootstrap theme? */
@@ -22,3 +27,4 @@ pre.r { font-size: 1em; }
   -webkit-border-radius: 4px solid rgb(55, 123, 181);
   border-radius: 4px solid rgb(55, 123, 181);
 }
+

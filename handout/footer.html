@@ -1,0 +1,15 @@
+<!-- adapted from the analyse-R project, https://github.com/larmarange/analyse-R -->
+<script>
+ $(document).ready(function () {
+     $("code[pkg]").each(function( index ) {
+         pkg = $(this).attr('pkg');
+         rdocumentation = $(this).text();
+         fonction = $(this).text();
+         $(this).wrap('<a href="http://www.rdocumentation.org/packages/'+pkg+'/functions/'+rdocumentation+'">');
+     });
+
+     $("code.pkg").each(function( index ) {
+         $(this).wrap('<a href="http://www.rdocumentation.org/packages/'+$(this).text()+'">');
+     });      
+ });
+</script>
