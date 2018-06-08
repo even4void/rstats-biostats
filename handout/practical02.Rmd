@@ -3,14 +3,21 @@ title: "Méthodes biostatistiques"
 subtitle: "Modèle linéaire et applications"
 ---
 
-Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **cowplot**, **texreg**, **rms**, **mfp**, **multcomp** et **reshape2** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot", "texreg", "rms", "mfp", "multcomp", "reshape2"))`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
+Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages `ggplot2`{.pkg}, `hrbrthemes`{.pkg}, `directlabels`{.pkg}, `cowplot`{.pkg}, `texreg`{.pkg}, `Hmisc`{.pkg}, `rms`{.pkg}, `mfp`{.pkg}, `multcomp`{.pkg} et `reshape2`{.pkg} ne font pas partie de la distribution R et doivent être installés si nécessaire :
+
+```{r, eval = FALSE}
+install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot",
+                     "texreg", "rms", "mfp", "multcomp", "reshape2"))
+```
+
+Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
 
 ```{r, message = FALSE}
 library(hrbrthemes)
 library(directlabels)
 library(cowplot)
 library(texreg)
-library(rms)            ## Hmisc, ggplot2
+library(rms)            ## Imports: Hmisc, ggplot2
 library(mfp)
 library(multcomp)
 library(reshape2)
@@ -20,9 +27,15 @@ theme_set(theme_ipsum(base_size = 11))
 
 # Régression linéaire simple
 
+<div class="outline">
+Soit $y_i$ la réponse observée sur l'individu $i$, et $x_i$ sa valeur observée pour le prédicteur $x$. Le modèle de régression linéaire s'écrit $$y_i = \beta_0+\beta_1x_i+\varepsilon_i,$$ où $\beta_0$ représente l'ordonnée à l'origine (\emph{intercept}) et $\beta_1$ la pente (\emph{slope}) de la droite de régression, et $\varepsilon_i\sim\mathcal{N}(0,\sigma^2)$ est un terme d'erreur (résidus, supposés indépendants).
+
+En minimisant les différences quadratiques entre les valeurs observées et les valeurs prédites (principe des MCO), on peut estimer les coefficients de régression, $\hat\beta_0$ et $\hat\beta_1$ : $$\begin{array}{l} \hat\beta_0 = \bar y - \hat\beta_1\bar x\\ \hat\beta_1 = \sum(y_i-\bar y)(x_i-\bar x)/\sum(x_i-\bar x)^2\\ \end{array}$$ Sous $H_0$, le rapport entre l'estimé de la pente ($\hat\beta_1$, de variance $\frac{\text{SSR}/(n-2)}{(n-1)s_x^2}$) et son erreur standard suit une loi de Student à $(n-2)$ degrés de liberté.
+</div>
+
 ## Chargement des données
 
-Les données utilisées proviennent d'une étude sur le volume expiratoire maximum (en litre par seconde)
+Les données utilisées proviennent d'une étude sur le volume expiratoire maximum (en litre par seconde) et sont disponibles dans le fichier [`fev.rda`](data/fev.rda) :
 
 ```{r}
 load("data/fev.rda")
@@ -31,7 +44,7 @@ str(FEV)
 
 ## Description des variables
 
-Un résumé numérique pour l'ensemble des variables peut être obtenu avec `summary()` (on pourrait utiliser la fonction `describe()` de **Hmisc** pour avoir plus de détails) :
+Un résumé numérique pour l'ensemble des variables peut être obtenu avec `summary`{pkg="base"} (on pourrait utiliser la fonction `describe`{pkg="Hmisc"} du package `Hmisc`{.pkg} pour avoir plus de détails) :
 
 ```{r}
 summary(FEV)
@@ -47,7 +60,7 @@ FEV$height <- FEV$height * 2.54  ## inches -> centimeters
 FEV$lfev <- log(FEV$fev)
 ```
 
-On va s'intéresser à la relation entre la variable `fev` (voire son log, `lfev`) et les autres variables numériques, `age` et `height`. Voici quelques représentations graphiques préliminaires avec **ggplot2**, dans un premier temps univariées, puis bivariées :
+On va s'intéresser à la relation entre la variable `fev` (voire son log, `lfev`) et les autres variables numériques, `age` et `height`. Voici quelques représentations graphiques préliminaires avec `ggplot2`{.pkg}, dans un premier temps univariées, puis bivariées :
 
 ```{r, warning = FALSE}
 ## switch to long format in order to get a facet variable
@@ -92,7 +105,7 @@ plot_grid(p1, p2)
 
 ## Modélisation
 
-Un premier modèle que l'on peut considérer est simplement la relation entre FEV et taille sur l'ensemble de l'échantillon :
+Un premier modèle de régression que l'on peut considérer est simplement la relation entre FEV et taille sur l'ensemble de l'échantillon. On obtient les paramètres estimés d'un tel modèle à l'aide de `lm`{pkg="stats"} :
 
 ```{r}
 m <- lm(fev ~ height, data = FEV)
@@ -134,7 +147,7 @@ p <- ggplot(data = NULL, aes(x = yhat, y = rstd)) +
 p
 ```
 
-Il reste quelques observations avec des résidus élevés aux deux extrêmes de la distribution des valeurs prédites (les observations avec des résidus supérieurs à 3 en valeur absolue sont annotés avec l'identifiant du sujet). On peut vérifier si ces observations influencent les paramètres estimés à l'aide des mesures d'influence par _jacknife_ fournies par R :
+Il reste quelques observations avec des résidus élevés aux deux extrêmes de la distribution des valeurs prédites (les observations avec des résidus supérieurs à 3 en valeur absolue sont annotés avec l'identifiant du sujet). On peut vérifier si ces observations influencent les paramètres estimés à l'aide des mesures d'influence par "jacknife" fournies par R :
 
 ```{r}
 influence.measures(m)
@@ -142,7 +155,7 @@ influence.measures(m)
 
 ## Autres approches pour la non linéarité
 
-Voici trois approches alternatives permettant de s'affranchir de la stricte linéarité telle qu'assumée dans le modèle de régression linéaire : dans un premier modèle (`m1`), on peut inclure un terme quadratique pour rendre compte du changement de pente apparent pour des tailles supérieures à 160 cm ; sur la même idée, on peut utiliser des polynômes de degré variable, ici d'ordre 3 (`m2`) ; enfin, une approche plus souple par rapport aux polynômes consisterait à utiliser des splines cubiques restreints (`m3`), ici à l'ordre 3 également :
+Voici trois approches alternatives permettant de s'affranchir de la stricte linéarité telle qu'assumée dans le modèle de régression linéaire : dans un premier modèle (`m1`), on peut inclure un terme quadratique pour rendre compte du changement de pente apparent pour des tailles supérieures à 160 cm ; sur la même idée, on peut utiliser des polynômes de degré variable, ici d'ordre 3 (`m2`) ; enfin, une approche plus souple par rapport aux polynômes consisterait à utiliser des splines cubiques restreints (`m3`), ici à l'ordre 3 également. Dans le cas des modèles `m2` et `m3`, les fonctions `pol` et `rcs` sont fournies par le package `rms`{.pkg} :
 
 ```{r}
 m1 <- lm(fev ~ height + I(height^2), data = FEV)
@@ -157,7 +170,7 @@ m4 <- mfp(fev ~ fp(height, df = 4, select = .05), data = FEV)
 m4
 ```
 
-Les prédcitions de ces différents modèles sont affichées dans la figure suivante.
+Les prédictions de ces différents modèles sont affichées dans la figure suivante.
 
 ```{r, echo = FALSE}
 dd <- data.frame(height = 110:190)
@@ -166,7 +179,7 @@ yhat <- cbind.data.frame(dd, y1 = predict(m1, dd), y2 = predict(m2, dd),
 p <- ggplot(data = FEV, aes(x = height, y = fev)) +
        geom_point(color = grey(.3), alpha = .5) +
        geom_line(data = melt(yhat, measure.vars = 2:5), aes(x = height, y = value, color = variable), size = 1) +
-       scale_color_ipsum(name = "", labels = c("height + height²", "poly(height, 3)", "rcs(height, 3)", "fp(height, 4)")) +
+       scale_color_ipsum(name = "", labels = c("height + height²", "pol(height, 3)", "rcs(height, 3)", "fp(height, 4)")) +
        theme(legend.position = c(0.1, 0.88)) +
        labs(x = "Height (cm)", y = "FEV (l/s)")
 p
@@ -233,6 +246,12 @@ FEV$age4c <- NULL
 
 # Régression multiple
 
+<div class="outline">
+Dans le cas où la variable réponse est continue, le modèle de régression multiple s'écrit simplement comme une combinaison linéaire de différents termes représentant les effets de chaque régresseur : $$\mathbb{E}(y\mid x_1,x_2,\dots) = \beta_0 + \beta_1x_1 + \beta_2x_2 + \dots.$$
+
+Les coefficients de régression représentent l'effet partiel de chaque prédicteur, c'est-à-dire l'effet de l'augmentation d'une unité de $x_j$ sur $y$ lorsque tous les autres prédicteurs sont maintenus constants. On peut tester l'égalité de l'ensemble des coefficients (test F), la nullité d'un coefficient (test t) ou d'un ensemble de coefficients (test F partiel).
+</div>
+
 Un autre modèle possible consiste à considérer le statut fumeur et un potentiel facteur de confusion, à savoir l'âge puisqu'en dessous de 9 ans il n'y a pas de fumeurs et qu'au-dessus on a bien deux sous-populations.
 
 ```{r, echo = FALSE}
@@ -279,7 +298,7 @@ p <- ggplot(data = FEV, aes(x = age, y = fev, color = smoke)) +
 direct.label(p + aes(label = smoke))
 ```
 
-Notons que l'on peut toujours utiliser la fonction `ols()` du package **rms** au lieu de la fonction `lm()` de base. Les sorties sont plus riches, il est possible d'introduire une régularisation de type "ridge" et **rms** fournit des procédure de validation et de calibration du modèle. les commandes de post-estimation (en langage Stata) sont plus intéressantes : on pourrait par exemple calculer les valeurs prédites de `fev` en fonction de `smoke` conditionnellement à un ensemble fixe et pré-spécifié de valeurs de `age`.
+Notons que l'on peut toujours utiliser la fonction `ols`{pkg="rms"} au lieu de la fonction `lm`{pkg="stats"} de base. Les sorties sont plus riches, il est possible d'introduire une régularisation de type "ridge" et `rms`{.pkg} fournit des procédure de validation et de calibration du modèle. les commandes de post-estimation (en langage Stata) sont plus intéressantes : on pourrait par exemple calculer les valeurs prédites de `fev` en fonction de `smoke` conditionnellement à un ensemble fixe et pré-spécifié de valeurs de `age`.
 
 En dernier lieu, si l'on rajoute la variable `height` et `height`^2^, on remarquera que l'interaction `age:smoke` n'est plus significative :
 
@@ -296,7 +315,7 @@ d <- cbind.data.frame(d, yhat)
 head(d)
 ```
 
-Approche alternative (spécifique au package **rms**) :
+Approche alternative (spécifique au package `rms`{.pkg}) :
 
 ```{r}
 Predict(m, age = 18, height = seq(160, 180, by = 2),
@@ -305,9 +324,15 @@ Predict(m, age = 18, height = seq(160, 180, by = 2),
 
 # Analyse de covariance
 
+<div class="outline">
+Soit $y_{ij}$ la $j$ème observation dans le groupe $i$. À l'image du modèle d'ANOVA à un facteur, le modèle d'ANCOVA s'écrit $$ y_{ij} = \mu+\alpha_i+\beta(x_{ij}-\bar x)+\varepsilon_{ij},$$ où $\beta$ est le coefficient de régression liant la réponse $y$ et le cofacteur $x$ (continu), avec $\bar x$ la moyenne générale des $x_{ij}$, et toujours un terme d'erreur $\varepsilon_{ij}\sim \mathcal{N}(0,\sigma^2)$.
+
+Notons que l'on fait l'hypothèse que $\beta$ est le même dans chaque groupe. Cette hypothèse de parallélisme peut se vérifier en testant la significativité du terme d'interaction $\alpha\beta$. La réponse moyenne ajustée pour l'effet du co-facteur numérique s'obtient simplement comme $\bar\alpha_i+\hat\beta(\bar x_i-\bar x)$, où $\bar x_i$ est la moyenne des $x$ dans le $i$ème groupe.
+</div>
+
 ## Chargement des données
 
-Les données `anorexia` portent sur une étude clinique dans laquelle on s'intéressait à l'amélioration de l'état de santé (mesurée par le gain de poids) de patientes anorexiques prises en charge par thérapie familiale (`FT`) ou thérapie comportementale (`CBT`). Un groupe contrôle est également disponible. Les données sont disponibles dans le packge **MASS**.
+Les données `anorexia`{pkg="MASS"} portent sur une étude clinique dans laquelle on s'intéresse à l'amélioration de l'état de santé (mesurée par le gain de poids) de patientes anorexiques prises en charge par thérapie familiale (`FT`) ou thérapie comportementale (`CBT`). Un groupe contrôle est également disponible. Les données sont situées dans le packge `MASS`{.pkg}.
 
 ```{r}
 data(anorexia, package = "MASS")
@@ -354,9 +379,9 @@ confint(m0)
 
 # Exercices d'application {.tabset}
 
-Dans cette application, on travaillera avec le data frame `birthwt` qui contient des données issues d'une étude rétrospective dans lequel on s'intéresse aux facteurs de risque d'accoucher d'un bébé avec un poids inférieur à la norme (< 2.5 kg selon les normes américaines des années 80). Les variables d'intérêt sont le poids du bébé (`bwt`), l'âge (`age`) et le poids (`lwt`, en pounds) de la mère ainsi que son origine ethnique (`race`), les antécédents d'hypertension (`ht`) et le status fumeur (`smoke`).
+Dans cette application, on travaillera avec le data frame `birthwt`{pkg="MASS"} qui contient des données issues d'une étude rétrospective dans lequel on s'intéresse aux facteurs de risque d'accoucher d'un bébé avec un poids inférieur à la norme (< 2.5 kg selon les normes américaines des années 80). Les variables d'intérêt sont le poids du bébé (`bwt`), l'âge (`age`) et le poids (`lwt`, en pounds) de la mère ainsi que son origine ethnique (`race`), les antécédents d'hypertension (`ht`) et le status fumeur (`smoke`).
 
-Les données sont disponibles dans le package **MASS**. Il est nécessaire de charger au préalable le package ou de le spécifier lors de l'importation :
+Les données sont disponibles dans le package `MASS`{.pkg}. Il est nécessaire de charger au préalable le package ou de le spécifier lors de l'importation :
 
 ```{r}
 data(birthwt, package = "MASS")
@@ -387,16 +412,16 @@ p
 On considérera le modèle de base suivant : `bwt ~ lwt + race`.
 
 1. Quelles sont les variables que l'on pourrait ajouter pour améliorer la portée ou la pertinence d'un tel modèle sur le plan de l'interprétation clinique ? Ces variables sont-elles significatives ?
-2. En utilisant une procédure de sélection automatique (`step()`), indiquer parmi l'ensemble des variables du _data frame_ lesquelles pourraient être considérées comme significatives au seuil de 5 %, sans tenir compte des problèmes inhérents à la sélection pas à pas.
-3. Comparer avec les résultats obtenus par une approche reposant sur une pénalisation de type "elasticnet" (package **elasticnet** ou **glmnet**).
+2. En utilisant une procédure de sélection automatique (`step`{pkg="stats"}), indiquer parmi l'ensemble des variables lesquelles pourraient être considérées comme significatives au seuil de 5 %, sans tenir compte des problèmes inhérents à la sélection pas à pas.
+3. Comparer avec les résultats obtenus par une approche reposant sur une pénalisation de type "elasticnet" (package `elasticnet`{.pkg} ou `glmnet`{.pkg}).
 
 ## Tests spécifiques
 
 1. Considérons le modèle `bwt ~ lwt + race + smoke`. Estimer les paramètres du modèle avec leurs intervalles de confiance à 95 %.
-2. On souhiate comparer le groupe `white` aux deux groupes réunis `black+other` tout en ajustant sur les deux autres variables du modèle. Proposer une approche reposant sur l'utilisation de contrastes (package **multcomp** ou **rms**).
+2. On souhiate comparer le groupe `white` aux deux groupes réunis `black+other` tout en ajustant sur les deux autres variables du modèle. Proposer une approche reposant sur l'utilisation de contrastes (package `multcomp`{.pkg} ou `rms`{.pkg}).
 3. Existe t-il une différence signifciative entre les mères qui fument dans la catégorie `white` et celles qui fument dans la catégorie `black` ?
 
 ## Estimation par bootstrap
 
 1. Estimer les paramètres du modèle `bwt ~ age + ht` et construire un intervalle de confiance à 95 % pour le coefficient de régression de `ht`.
-2. Comparer avec une approche par bootstrap (package **boot** ou procédure manuelle) pour la construction d'un intervalle de confiance.
+2. Comparer avec une approche par bootstrap (package `boot`{.pkg} ou procédure manuelle) pour la construction d'un intervalle de confiance.

@@ -3,7 +3,14 @@ title: "Méthodes biostatistiques"
 subtitle: "Modèles pour données corrélées"
 ---
 
-Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **ggfortify**, **hrbrthemes**, **directlabels**, **cowplot**, **texreg**, **lme4** et **geepack** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "ggfortify", "hrbrthemes", "directlabels", "cowplot", "texreg", "lme4", "geepack")`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
+Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages `ggplot2`{.pkg}, `ggfortify`{.pkg}, `hrbrthemes`{.pkg}, `directlabels`{.pkg}, `cowplot`{.pkg}, `texreg`{.pkg}, `lme4`{.pkg} et `geepack`{.pkg} ne font pas partie de la distribution R et doivent être installés si nécessaire :
+
+```{r, eval = FALSE}
+install.packages(c("ggplot2", "ggfortify", "hrbrthemes", "directlabels",
+                     "cowplot", "texreg", "lme4", "geepack")
+```
+
+Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
 
 ```{r, message = FALSE}
 library(ggplot2)
@@ -23,9 +30,11 @@ theme_set(theme_ipsum(base_size = 11))
 
 # Modèles à effets aléatoires
 
+FIXME: add div outline
+
 ## Chargement des données
 
-Les données analysées ci-après proviennent d'un plan d'expérience dans lequel on s'intéresse à l'excès de graisses dans les selles causé par un déficit en enzymes digestives au niveau de l'intestin. Les mêmes sujets ont été soumis à différents traitements (suppléments en enzyme pancréatique). Il y a donc plusieurs observations par sujet. Les données sont disponibles au format RData :
+Les données analysées ci-après proviennent d'un plan d'expérience dans lequel on s'intéresse à l'excès de graisses dans les selles causé par un déficit en enzymes digestives au niveau de l'intestin. Les mêmes sujets ont été soumis à différents traitements (suppléments en enzyme pancréatique). Il y a donc plusieurs observations par sujet. Les données sont disponibles au format RData dans le fichier [`fat.rda`](data/fat.rda) :
 
 ```{r}
 load("data/fat.rda")
@@ -34,7 +43,7 @@ str(fat)
 
 ## Description des variables
 
-Les moyennes et écarts-type pour chaque groupe de traitement sont reportées ci-dessous à l'aide de **Hmisc** :
+Les moyennes et écarts-type pour chaque groupe de traitement sont reportées ci-dessous à l'aide de `Hmisc`{.pkg} :
 
 ```{r}
 summary(fecfat ~ pilltype, data = fat, fun = smean.sd)
@@ -87,10 +96,10 @@ p
 
 ## Chargement des données
 
-Les données pour cette illustration portent sur un essai clinique randomisé comprenant deux bras de traitement et visant à étudier l'effet de l'administration d’ibuprofène par voie intraveineuse sur la mortalité de patients en état septique sévère. Les données sont disponibles au format Stata :
+Les données pour cette illustration portent sur un essai clinique randomisé comprenant deux bras de traitement et visant à étudier l'effet de l'administration d’ibuprofène par voie intraveineuse sur la mortalité de patients en état septique sévère. Les données sont disponibles dans le fichier Stata [`sepsis`](data/sepsis.dta) :
 
 ```{r}
-sepsis <- foreign::read.dta("../data/sepsis.dta")
+sepsis <- foreign::read.dta("data/sepsis.dta")
 str(sepsis)
 ```
 
@@ -106,7 +115,7 @@ sepsis.long$value <- celsius2fahr(sepsis.long$value)
 
 ## Description des variables
 
-On ne s'intéresse qu'aux variables `treat` (groupe de traitement), `race` (ethnicité), `fate` (statut vital) et les différentes mesures de température (`temp*`). Il est possible d'aborder ce jeu de données sous un angle d'analyse de survie, mais on va principalement regarder l'évolution de la température après la prise en charge entre les deux groupes de patients. Voici quelques statistiques descriptives obtenues avec le package **Hmisc** :
+On ne s'intéresse qu'aux variables `treat` (groupe de traitement), `race` (ethnicité), `fate` (statut vital) et les différentes mesures de température (`temp*`). Il est possible d'aborder ce jeu de données sous un angle d'analyse de survie, mais on va principalement regarder l'évolution de la température après la prise en charge entre les deux groupes de patients. Voici quelques statistiques descriptives obtenues avec le package `Hmisc`{.pkg} :
 
 ```{r}
 s <- summary(treat ~ fate + race + apache + temp0 + temp1, data = sepsis,
@@ -161,7 +170,7 @@ p
 
 ## Approche par modèle mixte
 
-Notons que la comparaison `temp0` versus `temp1` ne nécessiterait qu'une analyse de covariance. Ici, on souhaite modéliser l'ensemble des trajectoires individuelles dans les deux groupes. On aura donc quatre variables statistiques : l'identifiant du patient, le temps, le groupe de traitement et la réponse, et il faudra travailler avec le data frame en "format long" (`sepsis.long`). Le package **lme4** est requis pour ces analyses (par commodité d'affichage et rapidité de calcul) mais on pourrait utiliser le package **nlme** également. Pour simplifier l'analyse, on ne se préoccupe pas des données manquantes (on ne garde que les patients avec les 7 mesures) et on ne considèrera que deux modèles simples : (la syntaxe **nlme** est indiquée en commentaire)
+Notons que la comparaison `temp0` versus `temp1` ne nécessiterait qu'une analyse de covariance. Ici, on souhaite modéliser l'ensemble des trajectoires individuelles dans les deux groupes. On aura donc quatre variables statistiques : l'identifiant du patient, le temps, le groupe de traitement et la réponse, et il faudra travailler avec le data frame en "format long" (`sepsis.long`). Le package `lme4`{.pkg} est requis pour ces analyses (par commodité d'affichage et rapidité de calcul) mais on pourrait utiliser le package `nlme`{.pkg} également (la syntaxe correspondante est d'ailleurs indiquée en commentaire). Pour simplifier l'analyse, on ne se préoccupe pas des données manquantes (on ne garde que les patients avec les 7 mesures) et on ne considèrera que deux modèles simples :
 
 ```{r}
 cc <- aggregate(value ~ treat + id, sepsis.long, length)
@@ -230,7 +239,7 @@ plot_grid(p1, p2)
 
 ## Approche par équations généralisées
 
-Contrairement aux approches conditionnelles présentées plus haut, les équations généralisées permettent d'estimer l'évolution moyenne (et la structure de covariance) d'un ensemble d'observations corrélées. Les package **gee** et **geepack** peuvent être utilisés. Les illustrations qui suivent reposent sur **geepack**.
+Contrairement aux approches conditionnelles présentées plus haut, les équations généralisées permettent d'estimer l'évolution moyenne (et la structure de covariance) d'un ensemble d'observations corrélées. Les packages `gee`{.pkg} et `geepack`{.pkg} peuvent être utilisés, sachant que le package `gee`{.pkg} repose sur des erreurs-type asymptotiques. Les illustrations qui suivent reposent sur `geepack`{.pkg}.
 
 Voici un modèle équivalent, sur le principe, au modèle à effets aléatoires précédents où l'on modélise l'évolution moyenne de la température en fonction du temps en interaction avec le groupe de traitement et en supposant une matrice de variance-covariance de travail dite "exchangeable" :
 
@@ -239,7 +248,7 @@ m <- geeglm(value ~ time * treat, data = d, id = id, corstr = "exch", scale.fix=
 summary(m)
 ```
 
-Pour obtenir les matrices de variance-covariance estimée et de travail, il est nécessaire d'estimer les paramètres du modèle avec la fonction `geese()` au lieu de `geeglm()` :
+Pour obtenir les matrices de variance-covariance estimée et de travail, il est nécessaire d'estimer les paramètres du modèle avec la fonction `geese`{pkg="geepack"} au lieu de `geeglm`{pkg="geepack"} :
 
 ```{r}
 m0 <- geese(value ~ time * treat, data = d, id = id, corstr = "exch", scale.fix=TRUE)
@@ -264,6 +273,8 @@ p
 
 # Exercice d'application
 
+FIXME: translate
+
 A longitudinal study of the health effects of air pollution. (Ware et al., 1984; Fitzmaurice and Laird, 1993)
 
 Table of counts of wheezing status (Yes/No) for N = 537 children aged 7 to 10 years, with following two factors: maternal smoking (smoke, considered fixed) and time (age).
@@ -282,7 +293,7 @@ Le tableau suivant résume la proportion de cas en fonction de l'âge (lignes) e
 summary(resp ~ age + smoke, data = ohio, method = "cross")
 ```
 
-1. Estimer les paramètres d'un modèle GEE avec une matrice de variance-covariance non stucturée (`unstructured`) ou "exchangeable" et un terme d'inetraction `age:smoke`. Attention, la variable étant binaire, il est nécessaire de préciser une famille de type `binomial`. Le statut fumeur de la mère est-il significatif au seuil conventionel de 5 % ? Même question pour l'âge.
+1. Estimer les paramètres d'un modèle GEE avec une matrice de variance-covariance non stucturée (`unstructured`) ou "exchangeable" et un terme d'interaction `age:smoke`. Attention, la variable étant binaire, il est nécessaire de préciser une famille de type `binomial`. Le statut fumeur de la mère est-il significatif au seuil conventionel de 5 % ? Même question pour l'âge.
 2. Calculer l'odds-ratio ajusté pour la variable `age`, avec son son intervalle de confiance à 95 %.
 3. Représenter graphiquement les prédictions moyennes de ce modèle.
 

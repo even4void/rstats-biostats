@@ -3,7 +3,13 @@ title: "Méthodes biostatistiques"
 subtitle: "Modèles de régression pour données non gaussiennes"
 ---
 
-Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages **ggplot2**, **hrbrthemes**, **directlabels**, **cowplot**, **texreg** et **rms** ne font pas partie de la distribution R et doivent être téléchargés au préalable (`install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot", "texreg", "rms")`) s'ils ne sont pas déjà installés. Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
+Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages `ggplot2`{.pkg}, `hrbrthemes`{.pkg}, `directlabels`{.pkg}, `cowplot`{.pkg}, `texreg`{.pkg} et `rms`{.pkg} ne font pas partie de la distribution R et doivent être téléchargés au préalable si nécessaire :
+
+```{r, eval = FALSE}
+install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot", "texreg", "rms")
+```
+
+Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
 
 ```{r, message = FALSE}
 library(hrbrthemes)
@@ -12,16 +18,22 @@ library(ggfortify)
 library(cowplot)
 library(texreg)
 library(survival)
-library(rms)            ## Hmisc, ggplot2
+library(rms)            ## Imports: Hmisc, ggplot2
 options(digits = 6, show.signif.stars = FALSE)
 theme_set(theme_ipsum(base_size = 11))
 ```
 
 # Régression logistique
 
+<div class="outline">
+Si l'on note $\pi$ la probabilité d'observer l'événement $y=1$ (vs. 0), alors le log odds (transformation \emph{logit}) peut s'exprimer comme une fonction linéaire des paramètres du modèle à $p$ prédicteurs : $$g(x)=\log\left(\frac{\pi}{1-\pi}\right)=\beta_0+\beta_1x_1+\dots+\beta_px_p,$$ et la probabilité prédite s'écrit alors $$P(y=1\mid x_1,x_2,\dots,x_p)=\hat y_i=\frac{\exp(\hat\beta_0+\hat\beta_1x_1+\dots+\hat\beta_px_p)}{1+\exp(\hat\beta_0+\hat\beta_1x_1+\dots+\hat\beta_px_p)}.$$
+
+Dans ce type de modèle, on fait l'hypothèse que $y_i$ suit une distribution binomiale et que les observations sont indépendantes (aucune hypothèse sur la variance qui n'est pas un paramètre dans ce cas de figure). Notons également l'absence de terme d'erreur. L'estimation d'un tel type de modèle se fait par la méthode du maximum de vraisemblance. D'autres fonctions de lien existent (probit, log-log).
+</div>
+
 ## Chargement des données
 
-Les données ont déjà été examinées sous l'angle de la régression linéaire en considérant la variable `bwt` (poids du bébé) comme variable à expliquer. Dans les analyses qui suivent, on va s'intéresser à la variable `low` qui représente une indicatrice pour le cas `bwt<2500`.
+Les données `birthwt`{pkg="MASS"} ont déjà été examinées sous l'angle de la régression linéaire en considérant la variable `bwt` (poids du bébé) comme variable à expliquer. Dans les analyses qui suivent, on va s'intéresser à la variable `low` qui représente une indicatrice pour le cas `bwt<2500`.
 
 ```{r}
 data(birthwt, package = "MASS")
@@ -52,7 +64,7 @@ p
 
 ## Description des variables
 
-Voici un tableau récapitualitif des variables d'intérêt construit avec **Hmisc** :
+Voici un tableau récapitualitif des variables d'intérêt construit avec `Hmisc`{.pkg} :
 
 ```{r}
 s <- summary(low ~ age + lwt + race + smoke + ht + ui + ftv,
@@ -106,7 +118,7 @@ p <- ggplot(data = d, aes(x = lwt, y = yhat, color = race)) +
 direct.label(p + aes(label = race), method = "smart.grid")
 ```
 
-Le package **rms** offre la commande `lrm()` pour construire des modèles de régression logistique (cas binomial ou variables ordinales). Cette commande fournit des indices supplémentaires concernant la qualité d'ajustement et la qualité discriminante du modèle, et les procédures de post-estimation décrites dans le cas de la régression linéaire :
+Le package `rms`{.pkg} offre la commande `lrm`{pkg="rms"} pour construire des modèles de régression logistique (cas binomial ou variables ordinales). Cette commande fournit des indices supplémentaires concernant la qualité d'ajustement et la qualité discriminante du modèle, et les procédures de post-estimation décrites dans le cas de la régression linéaire :
 
 ```{r}
 ddist <- with(birthwt, datadist(lwt, race, smoke, ui))  ## mandatory for Predict with ggplot, see below
@@ -119,13 +131,13 @@ m
 r <- anova(m)
 ```
 
-Outre la possibilité d'utiliser `Predict()` (P majuscule) pour former des prédictions marginales avec ou sans ajustement, il existe une interface avec le package ggplot2. Voici un exemple d'application :
+Outre la possibilité d'utiliser `Predict`{pkg="rms"} (_P_ majuscule) pour former des prédictions marginales avec ou sans ajustement, il existe une interface avec le package ggplot2. Voici un exemple d'application :
 
 ```{r}
 ggplot(Predict(m, lwt, race="white", smoke, ui=1), anova = r, pval = TRUE)
 ```
 
-Enfin, en plus des options disponibles pour la calibration d'un modèle pronostique (`calibrate'()`), rms fournit la commande `validate()` qui permet d'évaluer la stabilité des paramètres par validation croisée (par défaut, bootstrap) :
+Enfin, en plus des options disponibles pour la calibration d'un modèle pronostique (`calibrate'`{pkg="rms"}), rms fournit la commande `validate`{pkg="rms"} qui permet d'évaluer la stabilité des paramètres par validation croisée (par défaut, bootstrap) :
 
 ```{r}
 validate(m)
@@ -181,9 +193,11 @@ p
 
 # Régression de Poisson
 
+FIXME: add div outline
+
 ## Chargement des données
 
-La régression de Poisson peut être utilisée dans plusieurs contexte différents : en lien avec la régression logistique (conevrgence de la loi de Poisson vers la loi binomiale), dans le cas du calcul de risque relatif dans les modèles de survie, dans le cadre des procédures de standardisation indirecte, ou plus simplement dans le cas des données de comptage. C'est ce dernier cas qui nous intéresse avec les données `schoolinf.rda` qui indiquent le nombre de jours après lequel on a diagnostiqué chez des étudiants la survenue d'une maladie infectieuse.
+La régression de Poisson peut être utilisée dans plusieurs contexte différents : en lien avec la régression logistique (conevrgence de la loi de Poisson vers la loi binomiale), dans le cas du calcul de risque relatif dans les modèles de survie, dans le cadre des procédures de standardisation indirecte, ou plus simplement dans le cas des données de comptage. C'est ce dernier cas qui nous intéresse avec les données [`schoolinf.rda`](data/schoolinf.rda) qui indiquent le nombre de jours après lequel on a diagnostiqué chez des étudiants la survenue d'une maladie infectieuse.
 
 ```{r}
 load("data/schoolinf.rda")
@@ -202,7 +216,7 @@ p
 
 ## Modélisation
 
-Le modèle de Poisson s'écrit comme dans le cas du modèle logistique, en adpatant simplement le type de famille :
+Le modèle de Poisson s'écrit comme dans le cas du modèle logistique, en adaptant simplement le type de famille dans la fonciton `glm`{pkg="stats"}:
 
 ```{r}
 m1 <- glm(count ~ days, data = schoolinf, family = poisson)
@@ -232,14 +246,14 @@ p
 
 # Modèle de Cox
 
-## Chargement des données
-
 <div class="outline">
 Le modèle de régression de Cox est un modèle semi-paramétrique simple dans lequel on modélise la fréquence instantanée de l'événement d'intérêt, appelé "hazard", en fonction de variables explicatives sous la forme :
 $$ \log\big(h(t;x_1,x_2,\dots)\big) = \log\big(h_0(t)\big) + \beta_1x_1 + \beta_2x_2 + \dots $$
 </div>
 
-Le package **survival** permet de traiter le cas de ce type de données, appelées données de survie, pour lesquelles sont associées une variable codant une durée ou une date chronologique et une variable codant un événement binaire (0 = l'événement n'a pas été observé à la dernière date d'observation, 1 = l'événement a été observé ; ici, l'événement est le décès). Voici comment procéder sour R pour définir cette variable composite :
+## Chargement des données
+
+Le package `survival`{.pkg} permet de traiter le cas de ce type de données, appelées données de survie, pour lesquelles sont associées une variable codant une durée ou une date chronologique et une variable codant un événement binaire (0 = l'événement n'a pas été observé à la dernière date d'observation, 1 = l'événement a été observé ; ici, l'événement est le décès). Voici comment procéder sour R pour définir cette variable composite :
 
 ```{r}
 data(lung, package = "survival")
@@ -250,14 +264,14 @@ head(st)
 
 ## Description des variables
 
-Toutes les commandes R doivent utiliser la variable composite définie par `Surv()`, raison pour laquelle il est plus commode de la stocker une fois pour toutes dans une variable, ici `st`. La médiane de survie et son intervalle de confiance pour l'ensemble des individus s'obtient de la manière suivante :
+Toutes les commandes R doivent utiliser la variable composite définie par `Surv`{pkg="survival"}, raison pour laquelle il est plus commode de la stocker une fois pour toutes dans une variable, ici `st`. La médiane de survie et son intervalle de confiance pour l'ensemble des individus s'obtient de la manière suivante :
 
 ```{r}
 s <- survfit(st ~ 1, data=lung)
 s
 ```
 
-Pour obtenir la médiane de survie dans deux groupes, on remplacera le terme d'intercept (`~ 1`) par le facteur correspondant. En réalité, `survfit()` permet de construire la table de mortalité, que l'on peut afficher entièrement ou partiellement en appliquant la méthode `summary()` :
+Pour obtenir la médiane de survie dans deux groupes, on remplacera le terme d'intercept (`~ 1`) par le facteur correspondant. En réalité, `survfit`{pkg="survival"} permet de construire la table de mortalité, que l'on peut afficher entièrement ou partiellement en appliquant la méthode `summary.survfit`{pkg="survival"} :
 
 ```{r}
 summary(s, times=seq(1, 200, by=20))
@@ -278,7 +292,7 @@ p
 
 ## Modélisation
 
-Le test du log-rank permettant de tester l'égalité de deux courbes de KM s'obtient avec la commande `survdiff()` :
+Le test du log-rank permettant de tester l'égalité de deux courbes de KM s'obtient avec la commande `survdiff`{pkg="survival"} :
 
 ```{r}
 survdiff(st ~ sex, data=lung)
@@ -301,29 +315,29 @@ coxph(st ~ sex + strata(age), data=lung)
 
 ## Régression logistique
 
-Les données `clslowbwt.dta` (format Stata) contiennent des données sur des poids de naissance comparables à celles analysées plus haut. Cette fois, les observations ne sont toutes indépendantes car il y a plusieurs enfants par mère. On ne dispose pas non plus des variables telles que `ht` ou `ui`.
+Les données [`clslowbwt.dta`](data/clslowbwt.dta) (format Stata) contiennent des données sur des poids de naissance comparables à celles analysées plus haut. Cette fois, les observations ne sont toutes indépendantes car il y a plusieurs enfants par mère. On ne dispose pas non plus des variables telles que `ht` ou `ui`.
 
 1. Décrire les données, en particulier le poids des bébés (`bwt` et `low`) en fonction des variables d'intérêt (`lwt`, `race`, `smoke`).
 2. Estimer les paramètres d'un modèle prédisant `low` en fonction de ces 3 variables.
-3. Comparer les résultats (en particulier les erreurs standard) avec ceux obtenus en utilisant un estimateur robuste de la variance (utiliser le package **sandwich** et la fonciton `coeftest()` ou la fonction `robcov()` du package **rms**). La variable de cluster sera évidemment l'identifiant des mères.
+3. Comparer les résultats (en particulier les erreurs standard) avec ceux obtenus en utilisant un estimateur robuste de la variance (utiliser le package `sandwich`{.pkg} et la fonction `coeftest`{pkg="sandwich"} ou la fonction `robcov`{pkg="rms"} du package `rms`{.pkg}). La variable de cluster sera évidemment l'identifiant des mères.
 
 ## Régression logistique pénalisée
 
-Les données `leukemia.rda` contiennent le statut du patient (première colonne) et un ensemble de mesures normalisées d'expression génique (colonne 2 à 3052). L'objectif est de comparer une approche de sélection de variable par tests univariés et par modèle de régerssion pénalisée.
+Les données [`leukemia.rda`](data/leukemia.rda) contiennent le statut du patient (première colonne) et un ensemble de mesures normalisées d'expression génique (colonne 2 à 3052). L'objectif est de comparer une approche de sélection de variable par tests univariés et par modèle de régerssion pénalisée.
 
 1. Réaliser un test de Student pour chaque variable `X*` et collecter le degré de signification du test. Si le résultat du test stocké dans une variable, il est possible d'accéder à celui-ci en utilisant l'objet `$p.value`. Afficher la distribution de l'ensemble des p-valeurs sous forme d'histogramme. Combien y'a t-il de tests significatifs avec et sans corerction pour les tests multiples ?
 2. À l'aide du package glmnet, réaliser une régression logistique avec une pénalisation de type lasso (`alpha=1`). Comparer les variables sélectionnées avec celles retenues en (1).
 
 ## Données de survie (1)
 
-Les données `compliance2.dta` (format Stata) contiennent les données d'une étude sur la mortalité de sujets ayant accepté ou non de participer à un programme de dépistage de l'anévrisme de l'aorte abdominale. Au total il y a 555 participants. On souhaite comparer la survie des participants entre les deux groupes (`particp`). Les informations temporelles consistent en une date d'entrée (`randate`) et une date de dernier point (`enddate`) et il faudra donc définir un intervalle `(time=, time2=)` à partir de ces deux variables.
+Les données [`compliance2.dta`](data/compliance2.dta) (format Stata) contiennent les données d'une étude sur la mortalité de sujets ayant accepté ou non de participer à un programme de dépistage de l'anévrisme de l'aorte abdominale. Au total il y a 555 participants. On souhaite comparer la survie des participants entre les deux groupes (`particp`). Les informations temporelles consistent en une date d'entrée (`randate`) et une date de dernier point (`enddate`) et il faudra donc définir un intervalle `(time=, time2=)` à partir de ces deux variables.
 
 1. Construire la courbe de Kaplan Meier pour les deux groupes de cet échantillon et calculer la médiane de survie avec son intervalle de confiance à 95 % pour les deux groupes de sujets.
 2. Estimer les paramètres d'un modèle de Cox en (a) ajustant ou (b) stratifiant sur l'âge codé en 5 classes (`ranagr`).
 
 ## Données de survie (2)
 
-Dans un essai contre placebo sur la cirrhose biliaire, la D-penicillamine (DPCA) a été introduite dans le bras actif sur une cohorte de 312 patients. Au total, 154 patients ont été randomisés dans le bras actif (variable traitement, `rx`, 1=Placebo, 2=DPCA). Un ensemble de données telles que l’âge, des données biologiques et signes cliniques variés incluant le niveau de bilirubine sérique (bilirub) sont disponibles dans le fichier `pbc.rda`. 1 Le status du patient est enregistré dans la variable `status` (0=vivant, 1=décédé) et la durée de suivi (`years`) représente le temps écoulé en années depuis la date de diagnostic.
+Dans un essai contre placebo sur la cirrhose biliaire, la D-penicillamine (DPCA) a été introduite dans le bras actif sur une cohorte de 312 patients. Au total, 154 patients ont été randomisés dans le bras actif (variable traitement, `rx`, 1=Placebo, 2=DPCA). Un ensemble de données telles que l’âge, des données biologiques et signes cliniques variés incluant le niveau de bilirubine sérique (bilirub) sont disponibles dans le fichier [`pbc.rda`](data/pbc.rda). 1 Le status du patient est enregistré dans la variable `status` (0=vivant, 1=décédé) et la durée de suivi (`years`) représente le temps écoulé en années depuis la date de diagnostic.
 
 Les instructions suivantes permettent de charger les données et d'encoder les
 variables catégorielles :
