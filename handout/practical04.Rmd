@@ -10,7 +10,7 @@ install.packages(c("ggplot2", "ggfortify", "hrbrthemes", "directlabels",
                      "cowplot", "texreg", "lme4", "geepack")
 ```
 
-Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
+Les dépendances de ces packages seront installées automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
 
 ```{r, message = FALSE}
 library(ggplot2)
@@ -30,7 +30,7 @@ theme_set(theme_ipsum(base_size = 11))
 
 # Modèles à effets aléatoires
 
-FIXME: add div outline
+<!--- FIXME: add div outline -->
 
 ## Chargement des données
 

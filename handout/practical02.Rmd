@@ -10,7 +10,7 @@ install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot",
                      "texreg", "rms", "mfp", "multcomp", "reshape2"))
 ```
 
-Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
+Les dépendances de ces packages seront installées automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
 
 ```{r, message = FALSE}
 library(hrbrthemes)

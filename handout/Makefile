@@ -7,9 +7,5 @@ all: $(TARGET)
 %.html : %.Rmd
 	Rscript -e "rmarkdown::render('$^')"
     
-
-tangle:
-    Rscript -e "knitr::purl('$^')"
-
 clean:
 	rm -f $(TARGET)
