@@ -1,25 +1,26 @@
 
-*** TODO Complete practicals
+*** DONE Complete practicals
 *** DONE Update CSS theme (inline + global?)
 *** TODO Check dataset description file
 *** DONE Add details and links in README
-*** TODO Fix Makefile rules (tangle + PDF)
+*** DONE Fix Makefile rules (tangle + PDF)
+*** TODO Review practicals
 
-* Checklist [11/17]
+* Checklist [14/17]
 
 - [X] practical01.Rmd, two-way ANOVA and multiple comparisons
 - [X] practical02.Rmd, linear regression and ANCOVA
-- [ ] practical03.Rmd, generalized linear models
+- [X] practical03.Rmd, generalized linear models
 - [X] practical04.Rmd, mixed-effect models and GEE
 - [X] practical05.Rmd, survival analysis -> practical04.Rmd
 - [-] practical06.Rmd, ridge regression and bootstrap
 - [ ] add memento R
 - [X] use shared YAML options
-- [-] choose a better HTML theme (https://bootswatch.com/3/)
+- [X] choose a better HTML theme (https://bootswatch.com/3/)
 - [X] Sepsis study (application two-group comparison and longitudinal models)
 - [X] ToothGrowth (application two-way ANOVA and contrast)
 - [X] Fecal fat study (illustration mixed models)
-- [-] Ohio study (illustration GEE)
+- [X] Ohio study (illustration GEE)
 - [X] anorexia (illustration ancova)
 - [-] (illustration estimation: nonparametric and bootstrap)
 - [X] Rat weight gain (illustation two-way ANOVA)

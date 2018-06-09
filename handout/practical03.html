@@ -1635,7 +1635,7 @@ div.tocify {
 
 <p>Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages <code class="pkg">ggplot2</code>, <code class="pkg">hrbrthemes</code>, <code class="pkg">directlabels</code>, <code class="pkg">cowplot</code>, <code class="pkg">texreg</code> et <code class="pkg">rms</code> ne font pas partie de la distribution R et doivent être téléchargés au préalable si nécessaire :</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">install.packages</span>(<span class="kw">c</span>(<span class="st">&quot;ggplot2&quot;</span>, <span class="st">&quot;hrbrthemes&quot;</span>, <span class="st">&quot;directlabels&quot;</span>, <span class="st">&quot;cowplot&quot;</span>, <span class="st">&quot;texreg&quot;</span>, <span class="st">&quot;rms&quot;</span>)</a></code></pre></div>
-<p>Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire <code>data/</code>. Si ce n’est pas le cas, il suffit de créer un sous-répertoire <code>data/</code> et d’y enregistrer les fichiers de données, ou de redéfinir les chemins d’accès dans les instructions de lecture des fichiers de données ci-après.</p>
+<p>Les dépendances de ces packages seront installées automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire <code>data/</code>. Si ce n’est pas le cas, il suffit de créer un sous-répertoire <code>data/</code> et d’y enregistrer les fichiers de données, ou de redéfinir les chemins d’accès dans les instructions de lecture des fichiers de données ci-après.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">library</span>(hrbrthemes)</a>
 <a class="sourceLine" id="cb2-2" data-line-number="2"><span class="kw">library</span>(directlabels)</a>
 <a class="sourceLine" id="cb2-3" data-line-number="3"><span class="kw">library</span>(ggfortify)</a>
@@ -1816,17 +1816,17 @@ div.tocify {
 <p>Enfin, en plus des options disponibles pour la calibration d’un modèle pronostique (<code pkg="rms">calibrate'</code>), rms fournit la commande <code pkg="rms">validate</code> qui permet d’évaluer la stabilité des paramètres par validation croisée (par défaut, bootstrap) :</p>
 <div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1"><span class="kw">validate</span>(m)</a></code></pre></div>
 <pre><code>##           index.orig training    test optimism index.corrected  n
-## Dxy           0.4039   0.4480  0.3771   0.0710          0.3330 40
-## R2            0.1595   0.1946  0.1367   0.0579          0.1017 40
-## Intercept     0.0000   0.0000 -0.1026   0.1026         -0.1026 40
-## Slope         1.0000   1.0000  0.8080   0.1920          0.8080 40
-## Emax          0.0000   0.0000  0.0656   0.0656          0.0656 40
-## D             0.1151   0.1441  0.0971   0.0470          0.0681 40
-## U            -0.0106  -0.0106  0.0054  -0.0160          0.0054 40
-## Q             0.1257   0.1547  0.0917   0.0630          0.0627 40
-## B             0.1919   0.1832  0.1986  -0.0153          0.2072 40
-## g             0.9271   1.0483  0.8315   0.2168          0.7103 40
-## gp            0.1767   0.1912  0.1626   0.0286          0.1481 40</code></pre>
+## Dxy           0.4039   0.4393  0.3719   0.0674          0.3365 40
+## R2            0.1595   0.1871  0.1351   0.0519          0.1076 40
+## Intercept     0.0000   0.0000 -0.1061   0.1061         -0.1061 40
+## Slope         1.0000   1.0000  0.8212   0.1788          0.8212 40
+## Emax          0.0000   0.0000  0.0626   0.0626          0.0626 40
+## D             0.1151   0.1377  0.0958   0.0419          0.0732 40
+## U            -0.0106  -0.0106  0.0036  -0.0142          0.0036 40
+## Q             0.1257   0.1483  0.0922   0.0560          0.0697 40
+## B             0.1919   0.1846  0.1985  -0.0139          0.2058 40
+## g             0.9271   1.0259  0.8306   0.1953          0.7318 40
+## gp            0.1767   0.1886  0.1622   0.0264          0.1503 40</code></pre>
 </div>
 <div id="cas-des-donnees-groupees" class="section level2">
 <h2>Cas des données groupées</h2>
@@ -1881,7 +1881,7 @@ div.tocify {
 </div>
 <div id="regression-de-poisson" class="section level1">
 <h1>Régression de Poisson</h1>
-<p>FIXME: add div outline</p>
+<!--- FIXME: add div outline -->
 <div id="chargement-des-donnees-1" class="section level2">
 <h2>Chargement des données</h2>
 <p>La régression de Poisson peut être utilisée dans plusieurs contexte différents : en lien avec la régression logistique (conevrgence de la loi de Poisson vers la loi binomiale), dans le cas du calcul de risque relatif dans les modèles de survie, dans le cadre des procédures de standardisation indirecte, ou plus simplement dans le cas des données de comptage. C’est ce dernier cas qui nous intéresse avec les données <a href="data/schoolinf.rda"><code>schoolinf.rda</code></a> qui indiquent le nombre de jours après lequel on a diagnostiqué chez des étudiants la survenue d’une maladie infectieuse.</p>

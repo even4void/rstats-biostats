@@ -1,3 +1,6 @@
+## ---- eval = FALSE-------------------------------------------------------
+## install.packages(c("ggplot2", "hrbrthemes", "directlabels", "Hmisc", "multcomp"))
+
 ## ---- message = FALSE----------------------------------------------------
 library(ggplot2)
 library(hrbrthemes)
@@ -11,14 +14,11 @@ theme_set(theme_ipsum(base_size = 11))
 d <- foreign::read.dta("data/polymorphism.dta")
 str(d)
 
-## ---- eval = FALSE-------------------------------------------------------
-## aggregate(age ~ genotype, data = d, mean)
-
 ## ------------------------------------------------------------------------
 summary(age ~ genotype, data = d, fun = smean.sd)
 
 ## ------------------------------------------------------------------------
-p <- ggplot(data = d, aes(x = age)) + 
+p <- ggplot(data = d, aes(x = age)) +
        geom_histogram(binwidth = 5, fill = "steelblue", color = "steelblue4") +
        facet_wrap(~ genotype, ncol = 3) +
        labs(x = "Age at diagnosis", y = "Count")
@@ -30,7 +30,7 @@ summary(m)
 
 ## ------------------------------------------------------------------------
 r <- with(d, summarize(age, genotype, smean.cl.normal))
-p <- ggplot(data = r, aes(x = genotype, y = age)) + 
+p <- ggplot(data = r, aes(x = genotype, y = age)) +
        geom_errorbar(aes(ymin = Lower, ymax = Upper), width=.1) +
        geom_point() +
        geom_jitter(data = d, width = .05, color = grey(.7), alpha = .5) +
@@ -62,7 +62,7 @@ d <- data.frame(weight = as.numeric(unlist(weight)),
 head(d)
 
 ## ------------------------------------------------------------------------
-p <- ggplot(data = d, aes(x = level, y = weight)) + 
+p <- ggplot(data = d, aes(x = level, y = weight)) +
        geom_boxplot(position = position_dodge()) +
        geom_jitter(size = .8, width = .05) +
        facet_wrap(~ type, nrow = 2) +

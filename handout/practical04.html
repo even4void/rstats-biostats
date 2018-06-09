@@ -1636,7 +1636,7 @@ div.tocify {
 <p>Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages <code class="pkg">ggplot2</code>, <code class="pkg">ggfortify</code>, <code class="pkg">hrbrthemes</code>, <code class="pkg">directlabels</code>, <code class="pkg">cowplot</code>, <code class="pkg">texreg</code>, <code class="pkg">lme4</code> et <code class="pkg">geepack</code> ne font pas partie de la distribution R et doivent être installés si nécessaire :</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">install.packages</span>(<span class="kw">c</span>(<span class="st">&quot;ggplot2&quot;</span>, <span class="st">&quot;ggfortify&quot;</span>, <span class="st">&quot;hrbrthemes&quot;</span>, <span class="st">&quot;directlabels&quot;</span>,</a>
 <a class="sourceLine" id="cb1-2" data-line-number="2">                     <span class="st">&quot;cowplot&quot;</span>, <span class="st">&quot;texreg&quot;</span>, <span class="st">&quot;lme4&quot;</span>, <span class="st">&quot;geepack&quot;</span>)</a></code></pre></div>
-<p>Les dépendances de ces packages seront installés automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire <code>data/</code>. Si ce n’est pas le cas, il suffit de créer un sous-répertoire <code>data/</code> et d’y enregistrer les fichiers de données, ou de redéfinir les chemins d’accès dans les instructions de lecture des fichiers de données ci-après.</p>
+<p>Les dépendances de ces packages seront installées automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire <code>data/</code>. Si ce n’est pas le cas, il suffit de créer un sous-répertoire <code>data/</code> et d’y enregistrer les fichiers de données, ou de redéfinir les chemins d’accès dans les instructions de lecture des fichiers de données ci-après.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">library</span>(ggplot2)</a>
 <a class="sourceLine" id="cb2-2" data-line-number="2"><span class="kw">library</span>(ggfortify)</a>
 <a class="sourceLine" id="cb2-3" data-line-number="3"><span class="kw">library</span>(hrbrthemes)</a>
@@ -1652,7 +1652,7 @@ div.tocify {
 <a class="sourceLine" id="cb2-13" data-line-number="13"><span class="kw">theme_set</span>(<span class="kw">theme_ipsum</span>(<span class="dt">base_size =</span> <span class="dv">11</span>))</a></code></pre></div>
 <div id="modeles-a-effets-aleatoires" class="section level1">
 <h1>Modèles à effets aléatoires</h1>
-<p>FIXME: add div outline</p>
+<!--- FIXME: add div outline -->
 <div id="chargement-des-donnees" class="section level2">
 <h2>Chargement des données</h2>
 <p>Les données analysées ci-après proviennent d’un plan d’expérience dans lequel on s’intéresse à l’excès de graisses dans les selles causé par un déficit en enzymes digestives au niveau de l’intestin. Les mêmes sujets ont été soumis à différents traitements (suppléments en enzyme pancréatique). Il y a donc plusieurs observations par sujet. Les données sont disponibles au format RData dans le fichier <a href="data/fat.rda"><code>fat.rda</code></a> :</p>

@@ -1,3 +1,7 @@
+## ---- eval = FALSE-------------------------------------------------------
+## install.packages(c("ggplot2", "ggfortify", "hrbrthemes", "directlabels",
+##                      "cowplot", "texreg", "lme4", "geepack")
+
 ## ---- message = FALSE----------------------------------------------------
 library(ggplot2)
 library(ggfortify)
@@ -6,6 +10,7 @@ library(directlabels)
 library(cowplot)
 library(texreg)
 library(Hmisc)
+library(survival)
 library(lme4)
 library(geepack)
 library(reshape2)
@@ -26,10 +31,10 @@ p <- ggplot(data = fat, aes(x = reorder(pilltype, fecfat), y = fecfat)) +
        geom_line(data = d, aes(x = pilltype, y = fecfat, group = 1),
                  color = "lightcoral", size = 1.2) +
        labs(x = NULL, y = "Fecal Fat")
-p 
+p
 
 ## ------------------------------------------------------------------------
-m1 <- aov(fecfat ~ pilltype, data = fat) 
+m1 <- aov(fecfat ~ pilltype, data = fat)
 m2 <- aov(fecfat ~ pilltype + subject, data = fat)
 m3 <- aov(fecfat ~ pilltype + Error(subject), data = fat)
 summary(m3)
@@ -49,7 +54,7 @@ p <- ggplot(data = fat, aes(x = reorder(pilltype, fecfat), y = yhat)) +
 p
 
 ## ------------------------------------------------------------------------
-sepsis <- foreign::read.dta("../data/sepsis.dta")
+sepsis <- foreign::read.dta("data/sepsis.dta")
 str(sepsis)
 
 ## ------------------------------------------------------------------------
@@ -60,7 +65,7 @@ celsius2fahr <- function(x) (x-32) / 1.8              ## °F -> °C
 sepsis.long$value <- celsius2fahr(sepsis.long$value)
 
 ## ------------------------------------------------------------------------
-s <- summary(treat ~ fate + race + apache + temp0 + temp1, data = sepsis, 
+s <- summary(treat ~ fate + race + apache + temp0 + temp1, data = sepsis,
              method = "reverse", overall = TRUE)
 print(s, digits = 3)
 
@@ -88,6 +93,18 @@ p <- ggplot(data = d, aes(x = variable, y = value, shape = treat, color = treat)
        guides(color = FALSE, shape = FALSE) +
        geom_dl(aes(label = treat), method = list("smart.grid", cex = .8)) +
        labs(x = "Durée de suivi (heure)", y = "Température (°C)")
+p
+
+## ------------------------------------------------------------------------
+## 0 = alive, 1 = dead
+st <- with(sepsis, Surv(time = followup, event = as.numeric(fate)-1))
+s <- survfit(st ~ treat, data = sepsis)
+p <- autoplot(s, censor = FALSE) +
+       scale_color_manual("", values = c("steelblue", "orange")) +
+       scale_fill_manual("", values = c("steelblue", "orange")) +
+       guides(fill = FALSE) +
+       theme(legend.position = c(.9, .9)) +
+       labs(x = "Followup time (hr.)", y = "Probability survival")
 p
 
 ## ------------------------------------------------------------------------
@@ -164,47 +181,10 @@ p <- ggplot(data = d, aes(x = time, y = yhat3, color = treat)) +
 p
 
 ## ------------------------------------------------------------------------
-summary(fate ~ treat + temp6, data = sepsis, fun = table)
-
-## ------------------------------------------------------------------------
-## 0 = alive, 1 = dead
-st <- with(sepsis, Surv(time = followup, event = as.numeric(fate)-1))
-summary(survfit(st ~ 1, data = sepsis), times = seq(100, 800, by = 100))
-
-## ------------------------------------------------------------------------
-s <- survfit(st ~ treat, data = sepsis)
-p <- autoplot(s, censor = FALSE) +
-       scale_color_manual("", values = c("steelblue", "orange")) + 
-       scale_fill_manual("", values = c("steelblue", "orange")) +
-       guides(fill = FALSE) +
-       theme(legend.position = c(.9, .9)) +
-       labs(x = "Followup time (hr.)", y = "Probability survival")
-p
-
-## ------------------------------------------------------------------------
-survdiff(st ~ treat, data = sepsis)
-
-## ------------------------------------------------------------------------
-m <- coxph(st ~ treat, data = sepsis)
-summary(m)
-
-## ------------------------------------------------------------------------
-m1 <- coxph(st ~ treat + temp0 + race + apache, data = sepsis)
-summary(m1)
-
-## ------------------------------------------------------------------------
 data(ohio, package = "geepack")
 str(ohio)
 ohio$age <- ohio$age + 9    ## in years
 
 ## ------------------------------------------------------------------------
 summary(resp ~ age + smoke, data = ohio, method = "cross")
-
-## ------------------------------------------------------------------------
-load("data/pbc.rda")
-pbc$rx <- factor(pbc$rx, levels = 1:2, labels = c("Placebo", "DPCA"))
-pbc$sex <- factor(pbc$sex, levels = 0:1, labels=c("M","F"))
-
-## ------------------------------------------------------------------------
-summary(status ~ rx + sex + cut2(age, g = 4), data = pbc, fun = table)
 

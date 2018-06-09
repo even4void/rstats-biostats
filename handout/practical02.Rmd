@@ -224,7 +224,7 @@ Le modèle `m2` fournit 3 coefficients de régression pour la variable âge à 4
 summary(m2)
 ```
 
-On retrouvera facilement les différentiels de moyennes :
+On retrouvera facilement les différentiels de moyennes _via_ `Hmisc`{.pkg} :
 
 ```{r}
 r <- with(FEV, summarize(fev, age4, smean.sd))
@@ -247,9 +247,13 @@ FEV$age4c <- NULL
 # Régression multiple
 
 <div class="outline">
-Dans le cas où la variable réponse est continue, le modèle de régression multiple s'écrit simplement comme une combinaison linéaire de différents termes représentant les effets de chaque régresseur : $$\mathbb{E}(y\mid x_1,x_2,\dots) = \beta_0 + \beta_1x_1 + \beta_2x_2 + \dots.$$
+Dans le cas où la variable réponse est continue, l'espérance mathématique de la distribution de la variable réponse s'écrit simplement comme une combinaison linéaire des $p$ termes représentant les effets de chaque régresseur $x_j$ ($j=1,\dots,p$) : $$\mathbb{E}(y\mid x_1,x_2,\dots) = \beta_0 + \beta_1x_1 + \beta_2x_2 + \dots.$$ Sa variance, $\sigma^2$ peut être estimée par $s^2 = \tfrac{1}{n-p-1}\sum_{i=1}^n(y_i - \hat y_i)^2$. On peut tester :
 
-Les coefficients de régression représentent l'effet partiel de chaque prédicteur, c'est-à-dire l'effet de l'augmentation d'une unité de $x_j$ sur $y$ lorsque tous les autres prédicteurs sont maintenus constants. On peut tester l'égalité de l'ensemble des coefficients (test F), la nullité d'un coefficient (test t) ou d'un ensemble de coefficients (test F partiel).
+1. l'égalité de l'ensemble des coefficients à l'aide du rapport entre le carré moyen de la régression et celui de la résiduelle (test F à $p$ et $n-p-1$ degrés de liberté), et l'hypothèse nulle se lit $H_0:\, \beta_1 = \beta_2 = \dots = \beta_p = 0$ ;
+2. la nullité d'un coefficient à l'aide du rapport $\tfrac{\hat\beta_j}{\text{SE}(\hat\beta_j)}$ (test t) ;
+3. la nullité d'un ensemble de coefficients (test F partiel par comparaison de modèles emboîtés à $p$ et $p-m$ degrés de libertés).
+
+Les coefficients de régression représentent l'effet partiel de chaque prédicteur, c'est-à-dire l'effet de l'augmentation d'une unité de $x_j$ sur $y$ lorsque tous les autres prédicteurs sont maintenus constants.
 </div>
 
 Un autre modèle possible consiste à considérer le statut fumeur et un potentiel facteur de confusion, à savoir l'âge puisqu'en dessous de 9 ans il n'y a pas de fumeurs et qu'au-dessus on a bien deux sous-populations.

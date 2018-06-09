@@ -1,9 +1,13 @@
+## ---- eval = FALSE-------------------------------------------------------
+## install.packages(c("ggplot2", "hrbrthemes", "directlabels", "cowplot",
+##                      "texreg", "rms", "mfp", "multcomp", "reshape2"))
+
 ## ---- message = FALSE----------------------------------------------------
 library(hrbrthemes)
 library(directlabels)
 library(cowplot)
 library(texreg)
-library(rms)            ## Hmisc, ggplot2
+library(rms)            ## Imports: Hmisc, ggplot2
 library(mfp)
 library(multcomp)
 library(reshape2)
@@ -70,8 +74,8 @@ summary(m)
 yhat <- fitted(m)
 rstd <- rstandard(m)
 p <- ggplot(data = NULL, aes(x = yhat, y = rstd)) +
-       geom_hline(yintercept = 0, linetype = 1, color = grey(.3)) + 
-       geom_hline(yintercept = c(-2,2), linetype = 2, color = grey(.3)) + 
+       geom_hline(yintercept = 0, linetype = 1, color = grey(.3)) +
+       geom_hline(yintercept = c(-2,2), linetype = 2, color = grey(.3)) +
        geom_point() +
        geom_smooth(method = "loess", se = FALSE, color = "lightcoral") +
        labs(x = "Fitted values", y = "Residuals")
@@ -85,10 +89,10 @@ yhat <- fitted(m)
 names(yhat) <- FEV$id
 rstd <- rstandard(m)
 p <- ggplot(data = NULL, aes(x = yhat, y = rstd)) +
-       geom_hline(yintercept = 0, linetype = 1, color = grey(.3)) + 
-       geom_hline(yintercept = c(-2,2), linetype = 2, color = grey(.3)) + 
+       geom_hline(yintercept = 0, linetype = 1, color = grey(.3)) +
+       geom_hline(yintercept = c(-2,2), linetype = 2, color = grey(.3)) +
        geom_point() +
-       annotate("text", x = yhat[abs(rstd) > 3], y = rstd[abs(rstd) > 3], 
+       annotate("text", x = yhat[abs(rstd) > 3], y = rstd[abs(rstd) > 3],
                 label = names(yhat[abs(rstd) > 3]), size = 3, hjust = -0.5) +
        geom_smooth(method = "loess", se = FALSE, color = "lightcoral") +
        labs(x = "Fitted values", y = "Residuals", caption = ~ "Model considering height" ^3)
@@ -108,12 +112,12 @@ m4
 
 ## ---- echo = FALSE-------------------------------------------------------
 dd <- data.frame(height = 110:190)
-yhat <- cbind.data.frame(dd, y1 = predict(m1, dd), y2 = predict(m2, dd), 
+yhat <- cbind.data.frame(dd, y1 = predict(m1, dd), y2 = predict(m2, dd),
                          y3 = predict(m3, dd), y4 = predict(m4, dd))
 p <- ggplot(data = FEV, aes(x = height, y = fev)) +
        geom_point(color = grey(.3), alpha = .5) +
        geom_line(data = melt(yhat, measure.vars = 2:5), aes(x = height, y = value, color = variable), size = 1) +
-       scale_color_ipsum(name = "", labels = c("height + height²", "poly(height, 3)", "rcs(height, 3)", "fp(height, 4)")) +
+       scale_color_ipsum(name = "", labels = c("height + height²", "pol(height, 3)", "rcs(height, 3)", "fp(height, 4)")) +
        theme(legend.position = c(0.1, 0.88)) +
        labs(x = "Height (cm)", y = "FEV (l/s)")
 p
@@ -189,15 +193,15 @@ m <- ols(fev ~ age + smoke + age:smoke + pol(height, 2), data = FEV, x = TRUE)
 m
 
 ## ------------------------------------------------------------------------
-d <- expand.grid(age = 9:18, smoke = levels(FEV$smoke), 
+d <- expand.grid(age = 9:18, smoke = levels(FEV$smoke),
                  height = seq(120, 180, by = 10))
 yhat <- predict(m, d, se.fit = TRUE)
 d <- cbind.data.frame(d, yhat)
 head(d)
 
 ## ------------------------------------------------------------------------
-Predict(m, age = 18, height = seq(160, 180, by = 2), 
-        smoke = "current smoker", conf.type = "simult") 
+Predict(m, age = 18, height = seq(160, 180, by = 2),
+        smoke = "current smoker", conf.type = "simult")
 
 ## ------------------------------------------------------------------------
 data(anorexia, package = "MASS")
@@ -241,7 +245,7 @@ p <- ggplot(data = birthwt, aes(x = lwt, y = bwt, color = smoke)) +
        scale_color_manual(values = c("steelblue", "orange")) +
        guides(color = FALSE) +
        facet_wrap(~ race, ncol = 3) +
-       geom_text(data = data.frame(lwt = c(45,90), bwt = c(1500,4500), 
+       geom_text(data = data.frame(lwt = c(45,90), bwt = c(1500,4500),
                                    race = "white", smoke = c("smoker", "non-smoker")),
                  aes(x = lwt, y = bwt, label = smoke), color = c("orange", "steelblue")) +
        labs(x = "Mother weight (kg)", y = "Baby weight (g)")
