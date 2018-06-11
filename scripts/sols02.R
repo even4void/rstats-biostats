@@ -28,3 +28,49 @@ mstep <- step(m0, scope = list(upper = ~ age + lwt + race * smoke + ui + ht + ft
 summary(mstep)
 
 library(glmnet)
+set.seed(101)
+
+desmat <- model.matrix(~ 0 + age + lwt + race + smoke + ui + ht + ftv, data = birthwt)
+
+head(desmat)
+
+enet <- glmnet(desmat, birthwt$bwt, alpha = 1)
+plot(enet, xvar = "lambda")
+
+enet.cv <- cv.glmnet(desmat, birthwt$bwt, alpha = 1)
+plot(enet.cv)
+
+coef(enet.cv$glmnet.fit, s=enet.cv$lambda.1se) # minus one SE trick
+
+
+################
+## Exercice 2 ##
+################
+fm <- bwt ~ lwt + race + smoke
+m <- lm(fm, data = birthwt)
+confint(m)
+
+
+birthwt$race2cat <- birthwt$race
+levels(birthwt$race2cat)[2:3] <- "black+other"
+
+m <- lm(bwt ~ 0 + lwt + race + smoke, data = birthwt)
+summary(m)
+
+library(multcomp)
+
+r <- glht(m, linfct = "racewhite - (raceblack + raceother) = 0")
+summary(r)
+
+# FIXME TODO  s2.3
+
+fm <- bwt ~ age + ht
+m <- lm(fm, data = birthwt)
+confint(m)
+
+library(boot)
+
+reg.boot <- function(formula, data, k) coef(lm(formula, data[k,]))
+
+r <- boot(data = birthwt, statistic = reg.boot, R = 500, formula = fm)
+boot.ci(r, type = "bca", index = 3)
