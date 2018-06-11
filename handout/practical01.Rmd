@@ -276,7 +276,7 @@ On souhaite comparer des groupes spécifiques d'observations.
 
 ## Type de sommes de carré
 
-R utilise des sommes de carré de type I, encore appelées séquentielles. Dans le cas où les effectifs sont balancés entre les traitements, on obtiendra les mêmes résultats quelle que soit l'approche utilisée. En cas de désquilibre d'effectifs, en revanche, ce n'est plus le cas et certains auteurs recommendent d'utiliser des sommes de carré de type III, voire de type II. Comparer les résultats obtenus en utilisant ces trois types de sommes de carré, obtenus à l'aide des fonctions `add11`{pkg="stats"} ou `drop1` et `Anova`{pkg="car"} du package `car`{.pkg} pour le modèle à deux facteurs sur les données `ToothGrowth`{pkg="datasets"}. Le déséquilibre d'effectifs pourra être imposé par une suppression aléatoire de 10 % des observations.
+R utilise des sommes de carré de type I, encore appelées séquentielles. Dans le cas où les effectifs sont balancés entre les traitements, on obtiendra les mêmes résultats quelle que soit l'approche utilisée. En cas de déséquilibre d'effectifs, en revanche, ce n'est plus le cas et certains auteurs recommendent d'utiliser des sommes de carré de type III, voire de type II. Comparer les résultats obtenus en utilisant ces trois types de sommes de carré, obtenus à l'aide des fonctions `add11`{pkg="stats"} ou `drop1` et `Anova`{pkg="car"} du package `car`{.pkg} pour le modèle à deux facteurs sur les données `ToothGrowth`{pkg="datasets"}. Le déséquilibre d'effectifs pourra être imposé par une suppression aléatoire de 10 % des observations.
 
 ```{r}
 set.seed(101)
