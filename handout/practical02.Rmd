@@ -44,7 +44,7 @@ str(FEV)
 
 ## Description des variables
 
-Un résumé numérique pour l'ensemble des variables peut être obtenu avec `summary`{pkg="base"} (on pourrait utiliser la fonction `describe`{pkg="Hmisc"} du package `Hmisc`{.pkg} pour avoir plus de détails) :
+Un résumé numérique pour l'ensemble des variables peut être obtenu avec `summary`{pkg="base"} (on pourrait utiliser la fonction `describe`{pkg="Hmisc"} du package `Hmisc`{.pkg} pour avoir des statistiques plus détaillées) :
 
 ```{r}
 summary(FEV)
@@ -56,11 +56,11 @@ On propose quelques pré-traitements pour faciliter les analyses subséquentes :
 describe(FEV$age)
 FEV$age[FEV$age == 3] <- 4         ## low counts in extreme categories
 FEV$age[FEV$age == 19] <- 18
-FEV$height <- FEV$height * 2.54  ## inches -> centimeters
+FEV$height <- FEV$height * 2.54    ## inches -> centimeters
 FEV$lfev <- log(FEV$fev)
 ```
 
-On va s'intéresser à la relation entre la variable `fev` (voire son log, `lfev`) et les autres variables numériques, `age` et `height`. Voici quelques représentations graphiques préliminaires avec `ggplot2`{.pkg}, dans un premier temps univariées, puis bivariées :
+On va s'intéresser à la relation entre la variable `fev` (ou son log, `lfev`) et les autres variables numériques, `age` et `height`. Voici quelques représentations graphiques préliminaires avec `ggplot2`{.pkg}, dans un premier temps univariées, puis bivariées :
 
 ```{r, warning = FALSE}
 ## switch to long format in order to get a facet variable
@@ -105,14 +105,14 @@ plot_grid(p1, p2)
 
 ## Modélisation
 
-Un premier modèle de régression que l'on peut considérer est simplement la relation entre FEV et taille sur l'ensemble de l'échantillon. On obtient les paramètres estimés d'un tel modèle à l'aide de `lm`{pkg="stats"} :
+Un premier modèle de régression que l'on peut considérer est simplement la relation entre FEV et taille sur l'ensemble de l'échantillon. On obtient les paramètres estimés d'un tel modèle à l'aide de `lm`{pkg="stats"} et en utilisant une "formule" décrivant la relation entre les variables, comme dans le cas de l'analyse de variance :
 
 ```{r}
 m <- lm(fev ~ height, data = FEV)
 summary(m)
 ```
 
-Les graphiques précédents suggérant toutefois une teandance non linéaire lorsque l'on stratifie sur le sexe, on peut regarder si les conditions de validité du modèle sont bien vérifiées, en particulier en analysant les résidus de ce modèle.
+Les graphiques précédents suggérant toutefois une tendance non linéaire lorsque l'on stratifie sur le sexe, on peut regarder si les conditions de validité du modèle (linéarité de la relation entre la variable réponse et le prédicteur et constance de la variance) sont bien vérifiées, en particulier en analysant les résidus de ce modèle.
 
 ```{r}
 yhat <- fitted(m)
@@ -163,7 +163,7 @@ m2 <- lm(fev ~ pol(height, 3), data = FEV)        ## or poly(height, 3, raw = TR
 m3 <- lm(fev ~ rcs(height, 3), data = FEV)
 ```
 
-Une dernière approche consiste à utiliser des polynömes fractionnaires, l'avantage étant comme dans le cas des splines une plus grande flexibilité et une validation croisée permettant de sélectionner le degré optimal :
+Une dernière approche consiste à utiliser des polynömes fractionnaires, l'avantage étant comme dans le cas des splines une plus grande flexibilité et une validation croisée interne permettant de sélectionner le degré optimal :
 
 ```{r}
 m4 <- mfp(fev ~ fp(height, df = 4, select = .05), data = FEV)
@@ -224,7 +224,7 @@ Le modèle `m2` fournit 3 coefficients de régression pour la variable âge à 4
 summary(m2)
 ```
 
-On retrouvera facilement les différentiels de moyennes _via_ `Hmisc`{.pkg} :
+On retrouvera facilement les différentiels de moyennes via `Hmisc`{.pkg} :
 
 ```{r}
 r <- with(FEV, summarize(fev, age4, smean.sd))
@@ -256,7 +256,7 @@ Dans le cas où la variable réponse est continue, l'espérance mathématique de
 Les coefficients de régression représentent l'effet partiel de chaque prédicteur, c'est-à-dire l'effet de l'augmentation d'une unité de $x_j$ sur $y$ lorsque tous les autres prédicteurs sont maintenus constants.
 </div>
 
-Un autre modèle possible consiste à considérer le statut fumeur et un potentiel facteur de confusion, à savoir l'âge puisqu'en dessous de 9 ans il n'y a pas de fumeurs et qu'au-dessus on a bien deux sous-populations.
+Un autre modèle possible consiste à considérer le statut fumeur et un potentiel facteur de confusion, à savoir l'âge puisqu'en dessous de 9 ans il n'y a pas de fumeurs et qu'au-dessus on a bien deux sous-populations, comme on peut le vérifier dans la figure suivante.
 
 ```{r, echo = FALSE}
 p <- ggplot(data = FEV, aes(x = age, y = fev, color = smoke)) +
@@ -336,7 +336,7 @@ Notons que l'on fait l'hypothèse que $\beta$ est le même dans chaque groupe. C
 
 ## Chargement des données
 
-Les données `anorexia`{pkg="MASS"} portent sur une étude clinique dans laquelle on s'intéresse à l'amélioration de l'état de santé (mesurée par le gain de poids) de patientes anorexiques prises en charge par thérapie familiale (`FT`) ou thérapie comportementale (`CBT`). Un groupe contrôle est également disponible. Les données sont situées dans le packge `MASS`{.pkg}.
+Les données `anorexia`{pkg="MASS"} portent sur une étude clinique dans laquelle on s'intéresse à l'amélioration de l'état de santé (mesurée par le gain de poids) de patientes anorexiques prises en charge par thérapie familiale (`FT`) ou thérapie comportementale (`CBT`). Un groupe contrôle (`Cont`) est également disponible. Les données sont disponibles dans le package `MASS`{.pkg}.
 
 ```{r}
 data(anorexia, package = "MASS")

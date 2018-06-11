@@ -118,7 +118,7 @@ p <- ggplot(data = d, aes(x = lwt, y = yhat, color = race)) +
 direct.label(p + aes(label = race), method = "smart.grid")
 ```
 
-Le package `rms`{.pkg} offre la commande `lrm`{pkg="rms"} pour construire des modèles de régression logistique (cas binomial ou variables ordinales). Cette commande fournit des indices supplémentaires concernant la qualité d'ajustement et la qualité discriminante du modèle, et les procédures de post-estimation décrites dans le cas de la régression linéaire :
+Le package `rms`{.pkg} offre la commande `lrm`{pkg="rms"} pour construire des modèles de régression logistique (cas binomial ou variables ordinales). Cette commande fournit des indices supplémentaires concernant la qualité d'ajustement et la qualité discriminante du modèle, et des procédures de post-estimation identiques à celles décrites dans le cas de la régression linéaire :
 
 ```{r}
 ddist <- with(birthwt, datadist(lwt, race, smoke, ui))  ## mandatory for Predict with ggplot, see below
@@ -131,7 +131,7 @@ m
 r <- anova(m)
 ```
 
-Outre la possibilité d'utiliser `Predict`{pkg="rms"} (_P_ majuscule) pour former des prédictions marginales avec ou sans ajustement, il existe une interface avec le package ggplot2. Voici un exemple d'application :
+Outre la possibilité d'utiliser `Predict`{pkg="rms"} (P majuscule) pour former des prédictions marginales avec ou sans ajustement, il existe une interface avec le package `ggplot2`{.pkg}. Voici un exemple d'application :
 
 ```{r}
 ggplot(Predict(m, lwt, race="white", smoke, ui=1), anova = r, pval = TRUE)
@@ -158,7 +158,7 @@ Voici un résumé de la structure de données :
 round(xtabs(hdis/total ~ bpress + chol, data = hdis), 2)
 ```
 
-Pour simplifier l'analyse, on va remplacer les catégories de pression systolique par leur centre de classe et analyser cette seule variable en mode numérique. La deuxième étape consiste donc à agréger les données sur les différents niveaux de cholestérol :
+Pour simplifier l'analyse, on va remplacer les catégories de pression systolique par leur centre de classe et analyser cette variable en mode numérique. La deuxième étape consiste donc à agréger les données sur les différents niveaux de cholestérol :
 
 ```{r}
 labs <- c(111.5,121.5,131.5,141.5,151.5,161.5,176.5,191.5)
@@ -166,13 +166,13 @@ hdis$bpress <- rep(labs, each = 7)
 d <- aggregate(cbind(hdis, total) ~ bpress, data = hdis, sum)
 ```
 
-Voici les proportions de cas :
+Voici comment calculer les proportions de cas :
 
 ```{r}
 d$prop <- d$hdis/d$total
 ```
 
-Enfin, voici le modèle de régression logistique où, dans le cas des données groupées, il est nécessaire d'indiquer la variable qui code l'événement positif (celui qui nous intéresse) et l'événement négatif (son complémentaire) :
+Enfin, voici le modèle de régression logistique où, dans le cas des données groupées, il est nécessaire d'indiquer la variable qui code l'événement positif (celui qui nous intéresse) et celle qui code l'événement négatif (son complémentaire) :
 
 ```{r}
 m <- glm(cbind(hdis, total-hdis) ~ bpress, data = d, family = binomial)
@@ -180,7 +180,7 @@ d$yhat <- predict(m, type = "response")
 d
 ```
 
-Les proportions observées et les valeurs prédites sont représentées dans la figure ci-dessous, la fonction `f` permettant de passer de l'échelle du log odds aux proportions :
+Les proportions observées et les valeurs prédites sont représentées dans la figure ci-dessous, la fonction `f()` permettant simplement de passer de l'échelle du log odds aux proportions pour le modèle `m` :
 
 ```{r}
 f <- function(x) 1/(1 + exp(-(coef(m)[1] + coef(m)[2]*x)))
@@ -193,7 +193,10 @@ p
 
 # Régression de Poisson
 
-<!--- FIXME: add div outline -->
+<div class="outline">
+La régression de poisson permet de modéliser le log d'un taux ou une variation sous forme d'une combinaison linéaire de $p$ variables explicatives : $$ \log\big(\lambda\mid x_1, x_2, \dots\big)=\lambda_0+\beta_1x_1+\beta_2x_2+\dots, $$ où $\lambda_0$ représente le taux attendu pour un individu pour lequel tous les cofacteurs valent 0. Sur l'échelle naturelle, le modèle prend, comme dans le cas de la régression logistique, une forme multiplicative où $\lambda = \lambda_0 \times \text{RR}_1^{x_1} \times \text{RR}_2^{x_2}  \times \dots$.
+</div>
+
 
 ## Chargement des données
 
@@ -247,8 +250,8 @@ p
 # Modèle de Cox
 
 <div class="outline">
-Le modèle de régression de Cox est un modèle semi-paramétrique simple dans lequel on modélise la fréquence instantanée de l'événement d'intérêt, appelé "hazard", en fonction de variables explicatives sous la forme :
-$$ \log\big(h(t;x_1,x_2,\dots)\big) = \log\big(h_0(t)\big) + \beta_1x_1 + \beta_2x_2 + \dots $$
+Le modèle de régression de Cox est un modèle semi-paramétrique simple dans lequel on modélise le risque ou la fréquence instantanée de l'événement d'intérêt, appelé "hazard", en fonction de variables explicatives sous la forme :
+$$ \log\big(h(t\mid x_1,x_2,\dots)\big) = \log\big(h_0(t)\big) + \beta_1x_1 + \beta_2x_2 + \dots. $$ À la différence du modèle de Poisson, le risque de base, $h_0(t)$, peut varier librement d'un individu à l'autre et il n'est pas estimé : on s'intéresse juste au rapport de risques, $\frac{h(t\mid X=x+1)}{h(t\mid X=x)}=\frac{h_0(t)e^{\beta_1(x+1)}}{h_0(t)e^{\beta_1x}}=e^{\beta_1}$.
 </div>
 
 ## Chargement des données
@@ -301,14 +304,22 @@ survdiff(st ~ sex, data=lung)
 Quant au modèle de Cox, la syntaxe est la même que dans le cas des autres modèles, à ceci près que la variable réponse est la variable composite définie plus haut, `st` :
 
 ```{r}
-m <- coxph(st ~ sex, data=lung)
-m
+m1 <- coxph(st ~ sex, data=lung)
+m1
 ```
 
 Il est possible de traiter un cofacteur comme une variable de stratification, de sorte que ses paramètres sont estimés mais ne contribuent pas au degré de liberté du modèle :
 
 ```{r}
-coxph(st ~ sex + strata(age), data=lung)
+m2 <- coxph(st ~ sex + strata(age), data=lung)
+m2
+```
+
+Pour vérifier l'hypothèse de risques proportionnel, il est possible d'utiliser des méthodes graphiques (en examinant la distribution des résidus de Schoenfeld) ou d'utiliser la procédure de test des résidus offerte par la commande `cox.zph`{pkg="survival"}.
+
+```{r}
+m3 <- coxph(st ~ sex + age, data=lung)
+cox.zph(m3)
 ```
 
 # Exercices d'application {.tabset}

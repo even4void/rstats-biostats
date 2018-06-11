@@ -5,6 +5,7 @@
 *** DONE Add details and links in README
 *** DONE Fix Makefile rules (tangle + PDF)
 *** TODO Review practicals
+*** TODO Write solutions to exercices
 
 * Checklist [14/17]
 

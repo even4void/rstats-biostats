@@ -176,7 +176,7 @@ m1 <- aov(weight ~ type * level, data = d)
 summary(m1)
 ```
 
-Le terme d'interaction n'étant pas significatif, il est possible de proposer un modèle plus simple :
+La notation `type * level` est équivalente à `type + level + type:level`, où `type:level` désigne l'interaction entre les facteurs `type` et `level`. Ce terme d'interaction n'étant pas significatif, il est possible de proposer un modèle plus simple :
 
 ```{r}
 m0 <- aov(weight ~ type + level, data = d)
@@ -189,7 +189,7 @@ On retrouvera le test de l'interaction en comparant ces deux modèles emboîtés
 anova(m0, m1)
 ```
 
-Puisque la variable `level` possède deux niveaux, il est également possible de retrouver les résultats du tableau d'ANOVA à l'aide de test de Student puisque l'effet de ce facteur est supposé être indépendant de l'autre terme inclus dans le modèle :
+Puisque la variable `level` possède deux niveaux, il est également possible de retrouver à peu près les mêmes résultats que ceux du tableau d'ANOVA à l'aide d'un test de Student puisque l'effet de ce facteur est supposé être indépendant de l'autre terme inclus dans le modèle :
 
 ```{r}
 r <- t.test(weight ~ level, data = d, var.equal = TRUE)
@@ -216,7 +216,7 @@ p <- ggplot(data = d, aes(x = interaction(type, level, sep = "/"), y = weight)) 
 p
 ```
 
-L'alternative consiste à utiliser des tests post-hoc de type Tukey HSD à l'aide de `TukeyHSD`{pkg="stats"}, ou de l'alternative disponible _via_ la fonction `multcomp::glht()`. Voici une illustration avec le package `multcomp`{.pkg}, plus flexible et plus générale que la fonction de base de R. À noter qu'il est également nécessaire de travailler avec le terme d'interaction et d'utiliser `lm`{pkg="stats"} au lieu de `aov`{pkg="stats"} :
+L'alternative consiste à utiliser des tests post-hoc de type Tukey HSD à l'aide de `TukeyHSD`{pkg="stats"}, ou de l'alternative disponible via la fonction `multcomp::glht()`. Voici une illustration avec le package `multcomp`{.pkg}, plus flexible et plus générale que la fonction de base de R. À noter qu'il est également nécessaire de travailler avec le terme d'interaction et d'utiliser `lm`{pkg="stats"} au lieu de `aov`{pkg="stats"} :
 
 ```{r}
 d$tx <- with(d, interaction(type, level))
