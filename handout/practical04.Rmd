@@ -3,11 +3,11 @@ title: "Méthodes biostatistiques"
 subtitle: "Modèles pour données corrélées"
 ---
 
-Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages `ggplot2`{.pkg}, `ggfortify`{.pkg}, `hrbrthemes`{.pkg}, `directlabels`{.pkg}, `cowplot`{.pkg}, `texreg`{.pkg}, `lme4`{.pkg} et `geepack`{.pkg} ne font pas partie de la distribution R et doivent être installés si nécessaire :
+Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages `ggplot2`{.pkg}, `ggfortify`{.pkg}, `hrbrthemes`{.pkg}, `directlabels`{.pkg}, `cowplot`{.pkg}, `texreg`{.pkg}, `Hmisc`{.pkg}, `lme4`{.pkg}, `geepack`{.pkg} et `reshape2`{.pkg} ne font pas partie de la distribution R et doivent être installés si nécessaire :
 
 ```{r, eval = FALSE}
 install.packages(c("ggplot2", "ggfortify", "hrbrthemes", "directlabels",
-                     "cowplot", "texreg", "lme4", "geepack")
+                     "cowplot", "texreg", "Hmisc", "lme4", "geepack", "reshape2")
 ```
 
 Les dépendances de ces packages seront installées automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire `data/`. Si ce n'est pas le cas, il suffit de créer un sous-répertoire `data/` et d'y enregistrer les fichiers de données, ou de redéfinir les chemins d'accès dans les instructions de lecture des fichiers de données ci-après.
@@ -29,8 +29,6 @@ theme_set(theme_ipsum(base_size = 11))
 ```
 
 # Modèles à effets aléatoires
-
-<!--- FIXME: add div outline -->
 
 ## Chargement des données
 
@@ -183,7 +181,7 @@ d$time <- as.numeric(as.character(d$time))
 ```
 
 ```{r}
-## lme(value ~ time * treat, data = d, random = ~ 1 | id)
+## nlme::lme(value ~ time * treat, data = d, random = ~ 1 | id)
 m1 <- lmer(value ~ time * treat + (1 | id), data = d)
 summary(m1)
 ```
@@ -191,17 +189,17 @@ summary(m1)
 Le second modèle inclut une pente aléatoire pour chaque patient, en plus de l'intercept aléatoire :
 
 ```{r}
-## lme(value ~ time * treat, data = d, random = ~ time | id)
+## nlme::lme(value ~ time * treat, data = d, random = ~ time | id)
 m2 <- lmer(value ~ time * treat + (time | id), data = d)
 ```
 
-Les troisième et quatrième modèles incluent, respectivement, les deux mêmes effets aléatoires, mais cette fois sans corrélation, et seulement une pente aléatoire entre les deux groupes :
+Les troisième et quatrième modèles incluent, respectivement, les deux mêmes effets aléatoires, mais cette fois sans corrélation, ou alors uniquement une pente aléatoire entre les deux groupes :
 
 ```{r}
-## lme(value ~ time * treat, data = d, random = list(id = pdDiag(~ time)))
+## nlme::lme(value ~ time * treat, data = d, random = list(id = pdDiag(~ time)))
 m3 <- lmer(value ~ time * treat + (1 | id) + (0 + time | id), data = d)
 
-## lme(value ~ time * treat, data = d, random = ~ 0 + time | id)
+## nlme::lme(value ~ time * treat, data = d, random = ~ 0 + time | id)
 m4 <- lmer(value ~ time * treat + (0 + time | id), data = d)
 ```
 
@@ -209,7 +207,7 @@ m4 <- lmer(value ~ time * treat + (0 + time | id), data = d)
 screenreg(list(m1, m2, m3), include.variance = TRUE)
 ```
 
-Test du rapport de vraisemblance entre les deux premiers modèles
+Test du rapport de vraisemblance entre les trois premiers modèles
 
 ```{r}
 anova(m1, m3, m2)
@@ -273,13 +271,7 @@ p
 
 # Exercice d'application
 
-FIXME: translate
-
-A longitudinal study of the health effects of air pollution. (Ware et al., 1984; Fitzmaurice and Laird, 1993)
-
-Table of counts of wheezing status (Yes/No) for N = 537 children aged 7 to 10 years, with following two factors: maternal smoking (smoke, considered fixed) and time (age).
-
-What is the marginal expectation of children’s response as a function of these co- variates (including the interaction smoke:time)?
+Les données proviennent d'une étude longitudinale de l'effet de la pollution atmosphérique sur l'état de santé mesuré par la capacité respiratoire des participants de l'étude. Les variables d'intérêt sont le statut respiratoire (`resp`) de 537 enfants âgés de 7 à 10 ans (`age`) et le statut fumeur de la mère (`smoke`).
 
 ```{r}
 data(ohio, package = "geepack")
@@ -293,7 +285,7 @@ Le tableau suivant résume la proportion de cas en fonction de l'âge (lignes) e
 summary(resp ~ age + smoke, data = ohio, method = "cross")
 ```
 
-1. Estimer les paramètres d'un modèle GEE avec une matrice de variance-covariance non stucturée (`unstructured`) ou "exchangeable" et un terme d'interaction `age:smoke`. Attention, la variable étant binaire, il est nécessaire de préciser une famille de type `binomial`. Le statut fumeur de la mère est-il significatif au seuil conventionel de 5 % ? Même question pour l'âge.
+1. Estimer les paramètres d'un modèle GEE avec une matrice de variance-covariance "exchangeable" et un terme d'interaction `age:smoke`. Attention, la variable étant binaire, il est nécessaire de préciser une famille de type `binomial`. Le statut fumeur de la mère est-il significatif au seuil conventionel de 5 % ? Même question pour l'âge.
 2. Calculer l'odds-ratio ajusté pour la variable `age`, avec son son intervalle de confiance à 95 %.
 3. Représenter graphiquement les prédictions moyennes de ce modèle.
-
+4. Comparer avec une approche par modèle mixte.
