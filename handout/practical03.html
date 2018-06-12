@@ -1816,17 +1816,17 @@ div.tocify {
 <p>Enfin, en plus des options disponibles pour la calibration d’un modèle pronostique (<code pkg="rms">calibrate'</code>), rms fournit la commande <code pkg="rms">validate</code> qui permet d’évaluer la stabilité des paramètres par validation croisée (par défaut, bootstrap) :</p>
 <div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb21-1" data-line-number="1"><span class="kw">validate</span>(m)</a></code></pre></div>
 <pre><code>##           index.orig training    test optimism index.corrected  n
-## Dxy           0.4039   0.4568  0.3736   0.0832          0.3207 40
-## R2            0.1595   0.2001  0.1375   0.0626          0.0970 40
-## Intercept     0.0000   0.0000 -0.1027   0.1027         -0.1027 40
-## Slope         1.0000   1.0000  0.8137   0.1863          0.8137 40
-## Emax          0.0000   0.0000  0.0641   0.0641          0.0641 40
-## D             0.1151   0.1485  0.0977   0.0509          0.0643 40
-## U            -0.0106  -0.0106  0.0072  -0.0178          0.0072 40
-## Q             0.1257   0.1591  0.0905   0.0686          0.0571 40
-## B             0.1919   0.1815  0.1986  -0.0171          0.2090 40
-## g             0.9271   1.0749  0.8384   0.2364          0.6907 40
-## gp            0.1767   0.1935  0.1638   0.0297          0.1470 40</code></pre>
+## Dxy           0.4039   0.4253  0.3776   0.0477          0.3562 40
+## R2            0.1595   0.1783  0.1376   0.0407          0.1188 40
+## Intercept     0.0000   0.0000 -0.0716   0.0716         -0.0716 40
+## Slope         1.0000   1.0000  0.8750   0.1250          0.8750 40
+## Emax          0.0000   0.0000  0.0421   0.0421          0.0421 40
+## D             0.1151   0.1310  0.0977   0.0333          0.0818 40
+## U            -0.0106  -0.0106  0.0028  -0.0133          0.0028 40
+## Q             0.1257   0.1416  0.0949   0.0467          0.0790 40
+## B             0.1919   0.1871  0.1978  -0.0107          0.2026 40
+## g             0.9271   0.9983  0.8426   0.1557          0.7714 40
+## gp            0.1767   0.1839  0.1641   0.0198          0.1569 40</code></pre>
 </div>
 <div id="cas-des-donnees-groupees" class="section level2">
 <h2>Cas des données groupées</h2>
@@ -2069,7 +2069,7 @@ div.tocify {
 <h2>Régression logistique pénalisée</h2>
 <p>Les données <a href="data/leukemia.rda"><code>leukemia.rda</code></a> contiennent le statut du patient (première colonne) et un ensemble de mesures normalisées d’expression génique (colonne 2 à 3052). L’objectif est de comparer une approche de sélection de variable par tests univariés et par modèle de régerssion pénalisée.</p>
 <ol style="list-style-type: decimal">
-<li>Réaliser un test de Student pour chaque variable <code>X*</code> et collecter le degré de signification du test. Si le résultat du test stocké dans une variable, il est possible d’accéder à celui-ci en utilisant l’objet <code>$p.value</code>. Afficher la distribution de l’ensemble des p-valeurs sous forme d’histogramme. Combien y’a t-il de tests significatifs avec et sans corerction pour les tests multiples ?</li>
+<li>Réaliser un test de Student pour chaque variable <code>X*</code> et collecter le degré de signification du test. Si le résultat du test est stocké dans une variable, il est possible d’accéder à celui-ci en utilisant l’objet <code>$p.value</code>. Afficher la distribution de l’ensemble des p-valeurs sous forme d’histogramme. Combien y’a t-il de tests significatifs avec et sans correction pour les tests multiples ?</li>
 <li>À l’aide du package glmnet, réaliser une régression logistique avec une pénalisation de type lasso (<code>alpha=1</code>). Comparer les variables sélectionnées avec celles retenues en (1).</li>
 </ol>
 </div>
@@ -2077,7 +2077,7 @@ div.tocify {
 <h2>Données de survie (1)</h2>
 <p>Les données <a href="data/compliance2.dta"><code>compliance2.dta</code></a> (format Stata) contiennent les données d’une étude sur la mortalité de sujets ayant accepté ou non de participer à un programme de dépistage de l’anévrisme de l’aorte abdominale. Au total il y a 555 participants. On souhaite comparer la survie des participants entre les deux groupes (<code>particp</code>). Les informations temporelles consistent en une date d’entrée (<code>randate</code>) et une date de dernier point (<code>enddate</code>) et il faudra donc définir un intervalle <code>(time=, time2=)</code> à partir de ces deux variables.</p>
 <ol style="list-style-type: decimal">
-<li>Construire la courbe de Kaplan Meier pour les deux groupes de cet échantillon et calculer la médiane de survie avec son intervalle de confiance à 95 % pour les deux groupes de sujets.</li>
+<li>Construire la courbe de Kaplan Meier pour les deux groupes de cet échantillon et calculer la valeur du 10e percentile de survie avec son intervalle de confiance à 95 % pour les deux groupes de sujets.</li>
 <li>Estimer les paramètres d’un modèle de Cox en (a) ajustant ou (b) stratifiant sur l’âge codé en 5 classes (<code>ranagr</code>).</li>
 </ol>
 </div>
@@ -2087,7 +2087,7 @@ div.tocify {
 <p>Les instructions suivantes permettent de charger les données et d’encoder les variables catégorielles :</p>
 <div class="sourceCode" id="cb55"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb55-1" data-line-number="1"><span class="kw">load</span>(<span class="st">&quot;data/pbc.rda&quot;</span>)</a>
 <a class="sourceLine" id="cb55-2" data-line-number="2">pbc<span class="op">$</span>rx &lt;-<span class="st"> </span><span class="kw">factor</span>(pbc<span class="op">$</span>rx, <span class="dt">levels =</span> <span class="dv">1</span><span class="op">:</span><span class="dv">2</span>, <span class="dt">labels =</span> <span class="kw">c</span>(<span class="st">&quot;Placebo&quot;</span>, <span class="st">&quot;DPCA&quot;</span>))</a>
-<a class="sourceLine" id="cb55-3" data-line-number="3">pbc<span class="op">$</span>sex &lt;-<span class="st"> </span><span class="kw">factor</span>(pbc<span class="op">$</span>sex, <span class="dt">levels =</span> <span class="dv">0</span><span class="op">:</span><span class="dv">1</span>, <span class="dt">labels=</span><span class="kw">c</span>(<span class="st">&quot;M&quot;</span>,<span class="st">&quot;F&quot;</span>))</a></code></pre></div>
+<a class="sourceLine" id="cb55-3" data-line-number="3">pbc<span class="op">$</span>sex &lt;-<span class="st"> </span><span class="kw">factor</span>(pbc<span class="op">$</span>sex, <span class="dt">levels =</span> <span class="dv">0</span><span class="op">:</span><span class="dv">1</span>, <span class="dt">labels =</span> <span class="kw">c</span>(<span class="st">&quot;M&quot;</span>,<span class="st">&quot;F&quot;</span>))</a></code></pre></div>
 <p>Voici un tableau descriptif des variables d’intérêt :</p>
 <div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb56-1" data-line-number="1"><span class="kw">summary</span>(status <span class="op">~</span><span class="st"> </span>rx <span class="op">+</span><span class="st"> </span>sex <span class="op">+</span><span class="st"> </span><span class="kw">cut2</span>(age, <span class="dt">g =</span> <span class="dv">4</span>), <span class="dt">data =</span> pbc, <span class="dt">fun =</span> table)</a></code></pre></div>
 <pre><code>## status     N= 312 

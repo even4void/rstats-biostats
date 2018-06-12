@@ -1633,9 +1633,9 @@ div.tocify {
 </div>
 
 
-<p>Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages <code class="pkg">ggplot2</code>, <code class="pkg">ggfortify</code>, <code class="pkg">hrbrthemes</code>, <code class="pkg">directlabels</code>, <code class="pkg">cowplot</code>, <code class="pkg">texreg</code>, <code class="pkg">lme4</code> et <code class="pkg">geepack</code> ne font pas partie de la distribution R et doivent être installés si nécessaire :</p>
+<p>Les paramètres suivants doivent être définis dans R ou RStudio afin de reproduire les analyses présentées dans ce document. Les packages <code class="pkg">ggplot2</code>, <code class="pkg">ggfortify</code>, <code class="pkg">hrbrthemes</code>, <code class="pkg">directlabels</code>, <code class="pkg">cowplot</code>, <code class="pkg">texreg</code>, <code class="pkg">Hmisc</code>, <code class="pkg">lme4</code>, <code class="pkg">geepack</code> et <code class="pkg">reshape2</code> ne font pas partie de la distribution R et doivent être installés si nécessaire :</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" data-line-number="1"><span class="kw">install.packages</span>(<span class="kw">c</span>(<span class="st">&quot;ggplot2&quot;</span>, <span class="st">&quot;ggfortify&quot;</span>, <span class="st">&quot;hrbrthemes&quot;</span>, <span class="st">&quot;directlabels&quot;</span>,</a>
-<a class="sourceLine" id="cb1-2" data-line-number="2">                     <span class="st">&quot;cowplot&quot;</span>, <span class="st">&quot;texreg&quot;</span>, <span class="st">&quot;lme4&quot;</span>, <span class="st">&quot;geepack&quot;</span>)</a></code></pre></div>
+<a class="sourceLine" id="cb1-2" data-line-number="2">                     <span class="st">&quot;cowplot&quot;</span>, <span class="st">&quot;texreg&quot;</span>, <span class="st">&quot;Hmisc&quot;</span>, <span class="st">&quot;lme4&quot;</span>, <span class="st">&quot;geepack&quot;</span>, <span class="st">&quot;reshape2&quot;</span>)</a></code></pre></div>
 <p>Les dépendances de ces packages seront installées automatiquement. On supposera également que les instructions R sont exécutées dans un répertoire de travail avec les fichiers de données accessibles dans un sous-répertoire <code>data/</code>. Si ce n’est pas le cas, il suffit de créer un sous-répertoire <code>data/</code> et d’y enregistrer les fichiers de données, ou de redéfinir les chemins d’accès dans les instructions de lecture des fichiers de données ci-après.</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" data-line-number="1"><span class="kw">library</span>(ggplot2)</a>
 <a class="sourceLine" id="cb2-2" data-line-number="2"><span class="kw">library</span>(ggfortify)</a>
@@ -1652,7 +1652,6 @@ div.tocify {
 <a class="sourceLine" id="cb2-13" data-line-number="13"><span class="kw">theme_set</span>(<span class="kw">theme_ipsum</span>(<span class="dt">base_size =</span> <span class="dv">11</span>))</a></code></pre></div>
 <div id="modeles-a-effets-aleatoires" class="section level1">
 <h1>Modèles à effets aléatoires</h1>
-<!--- FIXME: add div outline -->
 <div id="chargement-des-donnees" class="section level2">
 <h2>Chargement des données</h2>
 <p>Les données analysées ci-après proviennent d’un plan d’expérience dans lequel on s’intéresse à l’excès de graisses dans les selles causé par un déficit en enzymes digestives au niveau de l’intestin. Les mêmes sujets ont été soumis à différents traitements (suppléments en enzyme pancréatique). Il y a donc plusieurs observations par sujet. Les données sont disponibles au format RData dans le fichier <a href="data/fat.rda"><code>fat.rda</code></a> :</p>
@@ -1884,7 +1883,7 @@ div.tocify {
 <a class="sourceLine" id="cb24-5" data-line-number="5"><span class="kw">names</span>(d)[<span class="dv">3</span>] &lt;-<span class="st"> &quot;time&quot;</span></a>
 <a class="sourceLine" id="cb24-6" data-line-number="6"><span class="kw">levels</span>(d<span class="op">$</span>time) &lt;-<span class="st"> </span><span class="dv">0</span><span class="op">:</span><span class="dv">6</span></a>
 <a class="sourceLine" id="cb24-7" data-line-number="7">d<span class="op">$</span>time &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(<span class="kw">as.character</span>(d<span class="op">$</span>time))</a></code></pre></div>
-<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" data-line-number="1">## lme(value ~ time * treat, data = d, random = ~ 1 | id)</a>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb25-1" data-line-number="1">## nlme::lme(value ~ time * treat, data = d, random = ~ 1 | id)</a>
 <a class="sourceLine" id="cb25-2" data-line-number="2">m1 &lt;-<span class="st"> </span><span class="kw">lmer</span>(value <span class="op">~</span><span class="st"> </span>time <span class="op">*</span><span class="st"> </span>treat <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">|</span><span class="st"> </span>id), <span class="dt">data =</span> d)</a>
 <a class="sourceLine" id="cb25-3" data-line-number="3"><span class="kw">summary</span>(m1)</a></code></pre></div>
 <pre><code>## Linear mixed model fit by REML ['lmerMod']
@@ -1916,13 +1915,13 @@ div.tocify {
 ## treatIbprfn -0.694  0.246       
 ## tm:trtIbprf  0.246 -0.694 -0.354</code></pre>
 <p>Le second modèle inclut une pente aléatoire pour chaque patient, en plus de l’intercept aléatoire :</p>
-<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb27-1" data-line-number="1">## lme(value ~ time * treat, data = d, random = ~ time | id)</a>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb27-1" data-line-number="1">## nlme::lme(value ~ time * treat, data = d, random = ~ time | id)</a>
 <a class="sourceLine" id="cb27-2" data-line-number="2">m2 &lt;-<span class="st"> </span><span class="kw">lmer</span>(value <span class="op">~</span><span class="st"> </span>time <span class="op">*</span><span class="st"> </span>treat <span class="op">+</span><span class="st"> </span>(time <span class="op">|</span><span class="st"> </span>id), <span class="dt">data =</span> d)</a></code></pre></div>
-<p>Les troisième et quatrième modèles incluent, respectivement, les deux mêmes effets aléatoires, mais cette fois sans corrélation, et seulement une pente aléatoire entre les deux groupes :</p>
-<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" data-line-number="1">## lme(value ~ time * treat, data = d, random = list(id = pdDiag(~ time)))</a>
+<p>Les troisième et quatrième modèles incluent, respectivement, les deux mêmes effets aléatoires, mais cette fois sans corrélation, ou alors uniquement une pente aléatoire entre les deux groupes :</p>
+<div class="sourceCode" id="cb28"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb28-1" data-line-number="1">## nlme::lme(value ~ time * treat, data = d, random = list(id = pdDiag(~ time)))</a>
 <a class="sourceLine" id="cb28-2" data-line-number="2">m3 &lt;-<span class="st"> </span><span class="kw">lmer</span>(value <span class="op">~</span><span class="st"> </span>time <span class="op">*</span><span class="st"> </span>treat <span class="op">+</span><span class="st"> </span>(<span class="dv">1</span> <span class="op">|</span><span class="st"> </span>id) <span class="op">+</span><span class="st"> </span>(<span class="dv">0</span> <span class="op">+</span><span class="st"> </span>time <span class="op">|</span><span class="st"> </span>id), <span class="dt">data =</span> d)</a>
 <a class="sourceLine" id="cb28-3" data-line-number="3"></a>
-<a class="sourceLine" id="cb28-4" data-line-number="4">## lme(value ~ time * treat, data = d, random = ~ 0 + time | id)</a>
+<a class="sourceLine" id="cb28-4" data-line-number="4">## nlme::lme(value ~ time * treat, data = d, random = ~ 0 + time | id)</a>
 <a class="sourceLine" id="cb28-5" data-line-number="5">m4 &lt;-<span class="st"> </span><span class="kw">lmer</span>(value <span class="op">~</span><span class="st"> </span>time <span class="op">*</span><span class="st"> </span>treat <span class="op">+</span><span class="st"> </span>(<span class="dv">0</span> <span class="op">+</span><span class="st"> </span>time <span class="op">|</span><span class="st"> </span>id), <span class="dt">data =</span> d)</a></code></pre></div>
 <div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb29-1" data-line-number="1"><span class="kw">screenreg</span>(<span class="kw">list</span>(m1, m2, m3), <span class="dt">include.variance =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
 <pre><code>## 
@@ -1950,7 +1949,7 @@ div.tocify {
 ## Var: id.1 time                                            0.02    
 ## ==================================================================
 ## *** p &lt; 0.001, ** p &lt; 0.01, * p &lt; 0.05</code></pre>
-<p>Test du rapport de vraisemblance entre les deux premiers modèles</p>
+<p>Test du rapport de vraisemblance entre les trois premiers modèles</p>
 <div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb31-1" data-line-number="1"><span class="kw">anova</span>(m1, m3, m2)</a></code></pre></div>
 <pre><code>## refitting model(s) with ML (instead of REML)</code></pre>
 <pre><code>## Data: d
@@ -2020,10 +2019,7 @@ div.tocify {
 </div>
 <div id="exercice-dapplication" class="section level1">
 <h1>Exercice d’application</h1>
-<p>FIXME: translate</p>
-<p>A longitudinal study of the health effects of air pollution. (Ware et al., 1984; Fitzmaurice and Laird, 1993)</p>
-<p>Table of counts of wheezing status (Yes/No) for N = 537 children aged 7 to 10 years, with following two factors: maternal smoking (smoke, considered fixed) and time (age).</p>
-<p>What is the marginal expectation of children’s response as a function of these co- variates (including the interaction smoke:time)?</p>
+<p>Les données proviennent d’une étude longitudinale de l’effet de la pollution atmosphérique sur l’état de santé mesuré par la capacité respiratoire des participants de l’étude. Les variables d’intérêt sont le statut respiratoire (<code>resp</code>) de 537 enfants âgés de 7 à 10 ans (<code>age</code>) et le statut fumeur de la mère (<code>smoke</code>).</p>
 <div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb41-1" data-line-number="1"><span class="kw">data</span>(ohio, <span class="dt">package =</span> <span class="st">&quot;geepack&quot;</span>)</a>
 <a class="sourceLine" id="cb41-2" data-line-number="2"><span class="kw">str</span>(ohio)</a></code></pre></div>
 <pre><code>## 'data.frame':    2148 obs. of  4 variables:
@@ -2060,9 +2056,10 @@ div.tocify {
 ## |   |0.139|0.175|0.152|
 ## +---+-----+-----+-----+</code></pre>
 <ol style="list-style-type: decimal">
-<li>Estimer les paramètres d’un modèle GEE avec une matrice de variance-covariance non stucturée (<code>unstructured</code>) ou “exchangeable” et un terme d’interaction <code>age:smoke</code>. Attention, la variable étant binaire, il est nécessaire de préciser une famille de type <code>binomial</code>. Le statut fumeur de la mère est-il significatif au seuil conventionel de 5 % ? Même question pour l’âge.</li>
+<li>Estimer les paramètres d’un modèle GEE avec une matrice de variance-covariance “exchangeable” et un terme d’interaction <code>age:smoke</code>. Attention, la variable étant binaire, il est nécessaire de préciser une famille de type <code>binomial</code>. Le statut fumeur de la mère est-il significatif au seuil conventionel de 5 % ? Même question pour l’âge.</li>
 <li>Calculer l’odds-ratio ajusté pour la variable <code>age</code>, avec son son intervalle de confiance à 95 %.</li>
 <li>Représenter graphiquement les prédictions moyennes de ce modèle.</li>
+<li>Comparer avec une approche par modèle mixte.</li>
 </ol>
 </div>
 
