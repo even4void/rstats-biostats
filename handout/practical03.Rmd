@@ -336,14 +336,14 @@ Les données [`clslowbwt.dta`](data/clslowbwt.dta) (format Stata) contiennent de
 
 Les données [`leukemia.rda`](data/leukemia.rda) contiennent le statut du patient (première colonne) et un ensemble de mesures normalisées d'expression génique (colonne 2 à 3052). L'objectif est de comparer une approche de sélection de variable par tests univariés et par modèle de régerssion pénalisée.
 
-1. Réaliser un test de Student pour chaque variable `X*` et collecter le degré de signification du test. Si le résultat du test stocké dans une variable, il est possible d'accéder à celui-ci en utilisant l'objet `$p.value`. Afficher la distribution de l'ensemble des p-valeurs sous forme d'histogramme. Combien y'a t-il de tests significatifs avec et sans corerction pour les tests multiples ?
+1. Réaliser un test de Student pour chaque variable `X*` et collecter le degré de signification du test. Si le résultat du test est stocké dans une variable, il est possible d'accéder à celui-ci en utilisant l'objet `$p.value`. Afficher la distribution de l'ensemble des p-valeurs sous forme d'histogramme. Combien y'a t-il de tests significatifs avec et sans correction pour les tests multiples ?
 2. À l'aide du package glmnet, réaliser une régression logistique avec une pénalisation de type lasso (`alpha=1`). Comparer les variables sélectionnées avec celles retenues en (1).
 
 ## Données de survie (1)
 
 Les données [`compliance2.dta`](data/compliance2.dta) (format Stata) contiennent les données d'une étude sur la mortalité de sujets ayant accepté ou non de participer à un programme de dépistage de l'anévrisme de l'aorte abdominale. Au total il y a 555 participants. On souhaite comparer la survie des participants entre les deux groupes (`particp`). Les informations temporelles consistent en une date d'entrée (`randate`) et une date de dernier point (`enddate`) et il faudra donc définir un intervalle `(time=, time2=)` à partir de ces deux variables.
 
-1. Construire la courbe de Kaplan Meier pour les deux groupes de cet échantillon et calculer la médiane de survie avec son intervalle de confiance à 95 % pour les deux groupes de sujets.
+1. Construire la courbe de Kaplan Meier pour les deux groupes de cet échantillon et calculer la valeur du 10e percentile de survie avec son intervalle de confiance à 95 % pour les deux groupes de sujets.
 2. Estimer les paramètres d'un modèle de Cox en (a) ajustant ou (b) stratifiant sur l'âge codé en 5 classes (`ranagr`).
 
 ## Données de survie (2)
@@ -356,7 +356,7 @@ variables catégorielles :
 ```{r}
 load("data/pbc.rda")
 pbc$rx <- factor(pbc$rx, levels = 1:2, labels = c("Placebo", "DPCA"))
-pbc$sex <- factor(pbc$sex, levels = 0:1, labels=c("M","F"))
+pbc$sex <- factor(pbc$sex, levels = 0:1, labels = c("M","F"))
 ```
 
 Voici un tableau descriptif des variables d'intérêt :
