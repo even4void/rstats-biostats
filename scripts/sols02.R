@@ -62,7 +62,7 @@ library(multcomp)
 r <- glht(m, linfct = "racewhite - (raceblack + raceother) = 0")
 summary(r)
 
-# FIXME TODO  s2.3
+# FIXME TODO  2.3
 
 fm <- bwt ~ age + ht
 m <- lm(fm, data = birthwt)
