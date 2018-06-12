@@ -1,0 +1,9 @@
+clslowbwt.dta
+
+Cohorte de 188 mères (total de 487 enfants) sur lesquelles ont été recueillies différentes informations liées aux grossesses antérieures.
+
+Références :
+
+- Hosmer, D.W., Lemeshow, S. and Sturdivant, R.X. (2013). Applied Logistic Regression (3rd ed.). Hoboken, NJ: Wiley.
+
+- Juul, S., & Frydenberg, M. (2014). An introduction to stata for health researchers. Stata Press.

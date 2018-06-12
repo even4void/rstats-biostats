@@ -1,0 +1,9 @@
+leukemia.rda
+
+The leukemia data set contains expression levels of 7129 genes taken over 72 samples. Labels indicate which of two variants of leukemia is present in the sample (AML, 25 samples, or ALL, 47 samples). This dataset is of the same type as the colon cancer dataset and can therefore be used for the same kind of experiments. In fact, most of the papers that use the colon cancer data also use the leukemia data. Le fichier contient les données de l'échantillon d'apprentissage (n=38) uniquement.
+
+
+Référence :
+
+Xing, M. L. Jordan & Karp, R. M. (2001). Feature selection for high-dimensional genomic microarray data. International Conference on Machine Learning.
+URKL: https://www.inf.ed.ac.uk/teaching/courses/dme/html/datasets0405.html

@@ -1,0 +1,7 @@
+pbc.rda
+
+Essai clinique randomisé contre placebo (cohorte de 312 patients) sur la cirrhose biliaire où l'on s'intéresse à l'effet de la D-penicillamine (DPCA) dans le bras actif. Au total, 154 patients ont été randomisés dans le bras actif (variable traitement, `rx`, 1=Placebo, 2=DPCA). Un ensemble de données telles que l’âge, des données biologiques et signes cliniques variés incluant le niveau de bilirubine sérique (bilirub) sont également disponibles.
+
+Référence :
+
+Vittinghoff, E., Glidden, D. V., Shiboski, S. C., & McCulloch, C. E. (2005). Regression Methods in Biostatistics. Linear, Logistic, Survival, and Repeated Measures Models. New-York : Springer.

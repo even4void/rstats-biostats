@@ -1,0 +1,10 @@
+compliance2.dta
+
+Etude clinique sur la mortalité de sujets ayant accepté ou non de participer à un programme de dépistage de l'anévrisme de l'aorte abdominale. Les 555 hommes âgés de 64 à 73 ans ont été suivis jusqu'à leur décès ou la fin de l'année 1999.
+
+Références :
+
+- Lindholt, J.S., Juul, S., Fasting, H., and Henneberg, E.W. (2005). Screening for abdominal aortic aneurysms: Single centre randomized controlled trial. BMJ 330: 750-752.
+
+- Juul, S., & Frydenberg, M. (2014). An introduction to stata for health researchers. College Station, Texas: Stata Press.
+ 
