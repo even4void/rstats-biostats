@@ -1,7 +1,7 @@
 
 *** DONE Complete practicals
 *** DONE Update CSS theme (inline + global?)
-*** TODO Check dataset description file
+*** DONE Check dataset description file
 *** DONE Add details and links in README
 *** DONE Fix Makefile rules (tangle + PDF)
 *** DONE Review practicals
