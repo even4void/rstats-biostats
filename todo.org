@@ -4,8 +4,8 @@
 *** TODO Check dataset description file
 *** DONE Add details and links in README
 *** DONE Fix Makefile rules (tangle + PDF)
-*** TODO Review practicals
-*** TODO Write solutions to exercices
+*** DONE Review practicals
+*** DONE Write solutions to exercices
 
 * Checklist [14/17]
 
@@ -15,7 +15,6 @@
 - [X] practical04.Rmd, mixed-effect models and GEE
 - [X] practical05.Rmd, survival analysis -> practical04.Rmd
 - [-] practical06.Rmd, ridge regression and bootstrap
-- [ ] add memento R
 - [X] use shared YAML options
 - [X] choose a better HTML theme (https://bootswatch.com/3/)
 - [X] Sepsis study (application two-group comparison and longitudinal models)
