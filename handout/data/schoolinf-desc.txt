@@ -1,0 +1,7 @@
+schoolinf.rda
+
+Données artificielles.
+
+Référence :
+
+URL: http://www.theanalysisfactor.com/generalized-linear-models-in-r-part-6-poisson-regression-count-variables/

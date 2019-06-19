@@ -1,0 +1,7 @@
+hdis.rda
+
+Etude clinique dans laquelle on a mesuré la pression systolique et la concentration sanguine en cholestérol chez des patients ayant eu ou non un infarctus du myocarde.
+
+Référence :
+
+???

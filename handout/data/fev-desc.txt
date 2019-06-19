@@ -1,0 +1,8 @@
+fev.rda
+
+A dataset concerning the relationship between respiratory function (measured by forced expiratory volume, FEV) and smoking.
+
+Référence :
+
+Rosner, B. (1999), Fundamentals of Biostatistics, 5th ed., Pacific Grove, CA: Duxbury.
+URL: http://biostat.mc.vanderbilt.edu/wiki/Main/DataSets

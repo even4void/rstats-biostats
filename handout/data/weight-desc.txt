@@ -1,0 +1,8 @@
+weight.rda
+
+Experimental study of the gain in weight of rats fed on four different diets, defined by amount (low / high) and by source of protein (beef and cereal).
+
+Référence :
+
+Hand, D. J., Daly, F., McConway, K., & Ostrowski, E. (Éds). (1993). A Handbook of Small Data Sets. New York : Chapman & Hall/CRC Press.
+URL: http://www.stat.ncsu.edu/research/sas/sicl/data/

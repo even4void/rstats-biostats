@@ -1,0 +1,9 @@
+polymorphism.dta
+
+Polymorphisme et gène du récepteur estrogène et âge des participants.
+
+Fichier Stata
+
+Référence :
+
+Dupont, W. D. (2009). Statistical modeling for biomedical researchers. Cambridge University Press.

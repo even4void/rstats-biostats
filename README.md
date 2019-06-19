@@ -1,7 +1,5 @@
 # Méthodes biostatistiques
 
-Dépôt de données et de matériel pour la formation au logiciel R du Cancéropôle proposée par [RITME Academy](http://www.ritme.com).
-
 ## Pré-requis
 
 Si R n'est pas déjà installé sur votre machine, vous pouvez télécharger la dernière version sur le site [CRAN](http://cran.r-project.org). Le logiciel [RStudio](http://www.rstudio.com) peut également être installé afin de faciliter l'édition des scripts R et la visualisation des données tabulaires et des sorties graphiques. Le cas échéant, un éditeur de texte supportant l'édition de script R tel que [Atom](https://atom.io), [VS Code](https://code.visualstudio.com) ou [Sublime Text](https://www.sublimetext.com) devrait être suffisant.
